@@ -1,0 +1,11 @@
+{
+  "status": "candidate-not-deployed",
+  "network": "mainnet-beta",
+  "genesisHash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+  "program": "149WKoc5878Sx5EWjHGhPBL4vsoogY9og7ffkzdu39LM",
+  "programSha256": "904b304a9e6991cc63e894d85d86ef0547d4a6d829e9bab22111fde5f9c1688d",
+  "programBytes": 796064,
+  "idlSha256": "64aadecc2b574ec717dd542b01c3f253364c96dba8704c2a39795da16b864402",
+  "sourcePublished": false,
+  "independentAuditPublished": false
+}
