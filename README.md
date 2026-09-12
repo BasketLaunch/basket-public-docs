@@ -2,14 +2,14 @@
 
 Official integration interface for BASKET, a Solana basket launchpad with up to four underlying coins.
 
-**Mainnet is not deployed yet. Do not enable real-money trading using this candidate.**
+**Mainnet deployment and initialization are finalized. Trading is paused pending production checks. Upgrade authority is retained on the owner’s Ledger.**
 
 - [Website documentation](https://basketlaunch.fun/docs)
 - [Anchor IDL](idl/basket.json)
 - [Instructions and accounts](docs/INSTRUCTIONS.md)
 - [Lifecycle and integration](docs/INTEGRATION.md)
 - [Release manifest](release.json)
-- [Read-only deployment verifier](scripts/verify-deployment.py) — run `python3 scripts/verify-deployment.py`; currently reports not deployed.
+- [Read-only deployment verifier](scripts/verify-deployment.py) — run `python3 scripts/verify-deployment.py`; compares finalized on-chain bytecode against the published release.
 
 This repository publishes interfaces and documentation, not the private Rust program implementation. Release hashes allow comparison against deployed bytes once deployment occurs. This is not a reproducible source build or an independent audit. On-chain bytecode remains public and cannot be made impossible to reverse engineer.
 
