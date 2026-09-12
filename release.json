@@ -1,5 +1,5 @@
 {
-  "status": "deployed-paused",
+  "status": "deployed-active",
   "network": "mainnet-beta",
   "genesisHash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
   "program": "149WKoc5878Sx5EWjHGhPBL4vsoogY9og7ffkzdu39LM",
@@ -8,13 +8,15 @@
   "idlSha256": "64aadecc2b574ec717dd542b01c3f253364c96dba8704c2a39795da16b864402",
   "sourcePublished": false,
   "independentAuditPublished": false,
-  "verifiedAt": "2026-09-12T17:09:09.893Z",
+  "verifiedAt": "2026-09-12T17:16:46.700Z",
   "verifiedSlot": 446482633,
   "programData": "3FhMQyrccrgpZKj3CvzwZTUTekGKuKDULxhLN56aQKN2",
   "upgradeAuthority": "3ccaGRyZ9fHTRzzH479rzMnmAeME9fWajjuTEvXmCYVc",
   "treasury": "3ccaGRyZ9fHTRzzH479rzMnmAeME9fWajjuTEvXmCYVc",
   "pauseAuthority": "3ccaGRyZ9fHTRzzH479rzMnmAeME9fWajjuTEvXmCYVc",
-  "buysPaused": true,
+  "buysPaused": false,
   "deploymentSignature": "4rJbF586Wp6s993qPQu9LncSgqJiQRTEbHmurEb5zfQKtA6YWnJeWSzZb4wXg7W7MmsSKGfkfsUQaB5eQUwcH1V4",
-  "initializationSignature": "YJo79sw7RyYn763xuHZdmrVYrb9gm9rE3umGt8MAgvM3uKnCJcAkoJiKMv2PfhpsMUTaj7QwmQcRDrREJFpxtSp"
+  "initializationSignature": "YJo79sw7RyYn763xuHZdmrVYrb9gm9rE3umGt8MAgvM3uKnCJcAkoJiKMv2PfhpsMUTaj7QwmQcRDrREJFpxtSp",
+  "activationSignature": "2e57wRAzeiPScrPy5r7RjwHUNpytfxDGG2LDXAGK5Z67VA9FMcyeDpe5jR2GQK36UT1W5SKVMLN2MHbHzufq3TDR",
+  "activationSlot": 446483883
 }

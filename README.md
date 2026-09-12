@@ -2,12 +2,13 @@
 
 Official integration interface for BASKET, a Solana basket launchpad with up to four underlying coins.
 
-**Mainnet deployment and initialization are finalized. Trading is paused pending production checks. Upgrade authority is retained on the owner’s Ledger.**
+**Mainnet deployment and initialization are finalized. Mainnet buys are enabled. The first customer-driven mainnet lifecycle test is pending; do not mistake activation for completed production testing. Upgrade authority is retained on the owner’s Ledger.**
 
 - [Website documentation](https://basketlaunch.fun/docs)
 - [Anchor IDL](idl/basket.json)
 - [Instructions and accounts](docs/INSTRUCTIONS.md)
 - [Lifecycle and integration](docs/INTEGRATION.md)
+- [Trading-platform integration guide](docs/TRADING-PLATFORMS.md)
 - [Release manifest](release.json)
 - [Read-only deployment verifier](scripts/verify-deployment.py) — run `python3 scripts/verify-deployment.py`; compares finalized on-chain bytecode against the published release.
 
