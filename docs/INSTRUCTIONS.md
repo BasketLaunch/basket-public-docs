@@ -1,206 +1,284 @@
-# Instruction reference
+# BASKET instruction reference
 
-Generated from the candidate Anchor IDL. Account order and signer/writable flags are part of the ABI. Remaining venue accounts must be appended separately.
+IDL version: 0.1.0
 
-## initialize_config
+Program: `149WKoc5878Sx5EWjHGhPBL4vsoogY9og7ffkzdu39LM`
 
-Discriminator: `d07f1501c2bec446`
+This file is generated from the published Anchor IDL. External venue remaining accounts are route-specific and must follow the reference builders; named accounts alone are not a complete swap adapter.
 
-| Account | Signer | Writable |
-|---|---|---|
-| authority | true | true |
-| program_data | false | false |
-| config | false | true |
-| system_program | false | false |
+## Instructions
 
-Arguments: `[{"name": "treasury", "type": "pubkey"}]`
+### `initialize_config`
 
-## prepare_quote
+| Account | Writable | Signer |
+|---|---:|---:|
+| `authority` | yes | yes |
+| `program_data` | no | no |
+| `config` | yes | no |
+| `system_program` | no | no |
 
-Discriminator: `300bcc379de5e674`
+Arguments:
 
-| Account | Signer | Writable |
-|---|---|---|
-| payer | true | true |
-| router | false | true |
-| quote_mint | false | false |
-| quote | false | true |
-| token_program | false | false |
-| system_program | false | false |
+- `treasury`: `"pubkey"`
 
-Arguments: `[{"name": "_basket_mint", "type": "pubkey"}]`
+### `prepare_quote`
 
-## prepare_direct_quote
+Permissionless empty settlement-account preparation; no basket assets move.
 
-Discriminator: `e77c7e295f1097a9`
+| Account | Writable | Signer |
+|---|---:|---:|
+| `payer` | yes | yes |
+| `router` | yes | no |
+| `quote_mint` | no | no |
+| `quote` | yes | no |
+| `token_program` | no | no |
+| `system_program` | no | no |
 
-| Account | Signer | Writable |
-|---|---|---|
-| payer | true | true |
-| router | false | true |
-| quote_mint | false | false |
-| quote | false | true |
-| token_program | false | false |
-| system_program | false | false |
+Arguments:
 
-Arguments: `[{"name": "_trader", "type": "pubkey"}, {"name": "_mint", "type": "pubkey"}]`
+- `_basket_mint`: `"pubkey"`
 
-## direct_buy
+### `prepare_direct_quote`
 
-Discriminator: `ab03ff99fda74f42`
+| Account | Writable | Signer |
+|---|---:|---:|
+| `payer` | yes | yes |
+| `router` | yes | no |
+| `quote_mint` | no | no |
+| `quote` | yes | no |
+| `token_program` | no | no |
+| `system_program` | no | no |
 
-| Account | Signer | Writable |
-|---|---|---|
-| trader | true | true |
-| config | false | false |
-| treasury | false | true |
-| mint | false | false |
-| router | false | true |
-| trader_tokens | false | true |
-| token_program | false | false |
-| system_program | false | false |
+Arguments:
 
-Arguments: `[{"name": "gross_sol", "type": "u64"}, {"name": "min_tokens", "type": "u64"}]`
+- `_trader`: `"pubkey"`
+- `_mint`: `"pubkey"`
 
-## direct_sell
+### `direct_buy`
 
-Discriminator: `deaee2f35a95562f`
+| Account | Writable | Signer |
+|---|---:|---:|
+| `trader` | yes | yes |
+| `config` | no | no |
+| `treasury` | yes | no |
+| `mint` | no | no |
+| `router` | yes | no |
+| `trader_tokens` | yes | no |
+| `token_program` | no | no |
+| `system_program` | no | no |
 
-| Account | Signer | Writable |
-|---|---|---|
-| trader | true | true |
-| config | false | false |
-| treasury | false | true |
-| mint | false | false |
-| router | false | true |
-| trader_tokens | false | true |
-| token_program | false | false |
-| system_program | false | false |
+Arguments:
 
-Arguments: `[{"name": "tokens", "type": "u64"}, {"name": "min_net_sol", "type": "u64"}, {"name": "min_gross_sol", "type": "u64"}]`
+- `gross_sol`: `"u64"`
+- `min_tokens`: `"u64"`
 
-## set_buys_paused
+### `direct_sell`
 
-Discriminator: `c6d8b250f239d928`
+| Account | Writable | Signer |
+|---|---:|---:|
+| `trader` | yes | yes |
+| `config` | no | no |
+| `treasury` | yes | no |
+| `mint` | no | no |
+| `router` | yes | no |
+| `trader_tokens` | yes | no |
+| `token_program` | no | no |
+| `system_program` | no | no |
 
-| Account | Signer | Writable |
-|---|---|---|
-| authority | true | false |
-| config | false | true |
+Arguments:
 
-Arguments: `[{"name": "paused", "type": "bool"}]`
+- `tokens`: `"u64"`
+- `min_net_sol`: `"u64"`
+- `min_gross_sol`: `"u64"`
 
-## activate_and_buy
+### `set_buys_paused`
 
-Discriminator: `f289a73247f0ff6f`
+Pausing blocks new exposure, while existing holders retain the implemented sell path.
 
-| Account | Signer | Writable |
-|---|---|---|
-| buyer | true | true |
-| creator | true | false |
-| config | false | false |
-| mint | true | true |
-| market | false | true |
-| router | false | true |
-| supply_vault | false | true |
-| buyer_tokens | true | true |
-| cashback | false | true |
-| metadata | false | true |
-| metadata_program | false | false |
-| token_program | false | false |
-| system_program | false | false |
+| Account | Writable | Signer |
+|---|---:|---:|
+| `authority` | no | yes |
+| `config` | yes | no |
 
-Arguments: `[{"name": "weights", "type": {"vec": "u16"}}, {"name": "min_components", "type": {"vec": "u64"}}, {"name": "gross_sol", "type": "u64"}, {"name": "min_tokens", "type": "u64"}, {"name": "creator_share_bps", "type": "u16"}, {"name": "identity", "type": {"defined": {"name": "BasketIdentity"}}}]`
+Arguments:
 
-## activate_from_manifest
+- `paused`: `"bool"`
 
-Discriminator: `5b68df98c44f8bd5`
+### `activate_and_buy`
 
-| Account | Signer | Writable |
-|---|---|---|
-| buyer | true | true |
-| config | false | false |
-| mint | false | true |
-| market | false | true |
-| router | false | true |
-| supply_vault | false | true |
-| buyer_tokens | true | true |
-| cashback | false | true |
-| metadata | false | true |
-| metadata_program | false | false |
-| token_program | false | false |
-| system_program | false | false |
-| instructions | false | false |
+All constituent acquisitions, recipe creation, fees and fixed-supply initialization roll back together. Creator co-signs the immutable terms in this transaction.
 
-Arguments: `[{"name": "authorization", "type": {"defined": {"name": "ManifestAuthorization"}}}, {"name": "weights", "type": {"vec": "u16"}}, {"name": "min_components", "type": {"vec": "u64"}}, {"name": "gross_sol", "type": "u64"}, {"name": "min_tokens", "type": "u64"}, {"name": "creator_share_bps", "type": "u16"}, {"name": "identity", "type": {"defined": {"name": "BasketIdentity"}}}]`
+| Account | Writable | Signer |
+|---|---:|---:|
+| `buyer` | yes | yes |
+| `creator` | no | yes |
+| `config` | no | no |
+| `mint` | yes | yes |
+| `market` | yes | no |
+| `router` | yes | no |
+| `supply_vault` | yes | no |
+| `buyer_tokens` | yes | yes |
+| `token_program` | no | no |
+| `system_program` | no | no |
 
-## buy
+Arguments:
 
-Discriminator: `66063d1201daebea`
+- `weights`: `{"vec":"u16"}`
+- `min_components`: `{"vec":"u64"}`
+- `gross_sol`: `"u64"`
+- `min_tokens`: `"u64"`
+- `creator_share_bps`: `"u16"`
+- `identity`: `{"defined":{"name":"BasketIdentity"}}`
 
-| Account | Signer | Writable |
-|---|---|---|
-| trader | true | true |
-| config | false | false |
-| market | false | true |
-| router | false | true |
-| supply_vault | false | true |
-| trader_tokens | false | true |
-| cashback | false | true |
-| token_program | false | false |
-| system_program | false | false |
+### `activate_from_manifest`
 
-Arguments: `[{"name": "gross_sol", "type": "u64"}, {"name": "composite", "type": "u64"}, {"name": "min_tokens", "type": "u64"}, {"name": "max_sol_per_component", "type": {"vec": "u64"}}]`
+A zero-dev-buy creator authorizes fixed terms off-chain; the first buyer pays atomically.
 
-## sell
+| Account | Writable | Signer |
+|---|---:|---:|
+| `buyer` | yes | yes |
+| `config` | no | no |
+| `mint` | yes | no |
+| `market` | yes | no |
+| `router` | yes | no |
+| `supply_vault` | yes | no |
+| `buyer_tokens` | yes | yes |
+| `token_program` | no | no |
+| `system_program` | no | no |
+| `instructions` | no | no |
 
-Discriminator: `33e685a4017f83ad`
+Arguments:
 
-| Account | Signer | Writable |
-|---|---|---|
-| trader | true | true |
-| config | false | false |
-| market | false | true |
-| router | false | true |
-| supply_vault | false | true |
-| trader_tokens | false | true |
-| cashback | false | true |
-| token_program | false | false |
-| system_program | false | false |
+- `authorization`: `{"defined":{"name":"ManifestAuthorization"}}`
+- `weights`: `{"vec":"u16"}`
+- `min_components`: `{"vec":"u64"}`
+- `gross_sol`: `"u64"`
+- `min_tokens`: `"u64"`
+- `creator_share_bps`: `"u16"`
+- `identity`: `{"defined":{"name":"BasketIdentity"}}`
 
-Arguments: `[{"name": "tokens", "type": "u64"}, {"name": "min_net_sol", "type": "u64"}, {"name": "min_sol_per_component", "type": {"vec": "u64"}}]`
+### `buy`
 
-## claim_creator_fee
+| Account | Writable | Signer |
+|---|---:|---:|
+| `trader` | yes | yes |
+| `config` | no | no |
+| `market` | yes | no |
+| `router` | yes | no |
+| `mint` | yes | no |
+| `supply_vault` | yes | no |
+| `trader_tokens` | yes | no |
+| `cashback` | yes | no |
+| `token_program` | no | no |
+| `system_program` | no | no |
 
-Discriminator: `1a618acb84ab8dfc`
+Arguments:
 
-| Account | Signer | Writable |
-|---|---|---|
-| owner | true | true |
-| market | false | true |
+- `gross_sol`: `"u64"`
+- `composite`: `"u64"`
+- `min_tokens`: `"u64"`
+- `max_sol_per_component`: `{"vec":"u64"}`
 
-Arguments: `[]`
+### `sell`
 
-## claim_platform_fee
+| Account | Writable | Signer |
+|---|---:|---:|
+| `trader` | yes | yes |
+| `config` | no | no |
+| `market` | yes | no |
+| `router` | yes | no |
+| `mint` | yes | no |
+| `supply_vault` | yes | no |
+| `trader_tokens` | yes | no |
+| `cashback` | yes | no |
+| `token_program` | no | no |
+| `system_program` | no | no |
 
-Discriminator: `9c27d0874ced3d48`
+Arguments:
 
-| Account | Signer | Writable |
-|---|---|---|
-| owner | true | true |
-| market | false | true |
+- `tokens`: `"u64"`
+- `min_net_sol`: `"u64"`
+- `min_sol_per_component`: `{"vec":"u64"}`
 
-Arguments: `[]`
+### `finalize_metadata`
 
-## claim_cashback
+Publish immutable Metaplex metadata after the financially atomic launch. The creator-funded reserve repays the permissionless cranker and returns excess.
 
-Discriminator: `253a237ebe35e4c5`
+| Account | Writable | Signer |
+|---|---:|---:|
+| `cranker` | yes | yes |
+| `market` | yes | no |
+| `router` | yes | no |
+| `mint` | yes | no |
+| `metadata_payer` | yes | no |
+| `metadata` | yes | no |
+| `metadata_program` | no | no |
+| `token_program` | no | no |
+| `system_program` | no | no |
 
-| Account | Signer | Writable |
-|---|---|---|
-| owner | true | true |
-| market | false | true |
-| cashback | false | true |
+Arguments:
 
-Arguments: `[]`
+- None
 
+### `claim_creator_fee`
+
+| Account | Writable | Signer |
+|---|---:|---:|
+| `owner` | yes | yes |
+| `market` | yes | no |
+| `router` | yes | no |
+| `system_program` | no | no |
+
+Arguments:
+
+- None
+
+### `claim_platform_fee`
+
+| Account | Writable | Signer |
+|---|---:|---:|
+| `owner` | yes | yes |
+| `market` | yes | no |
+| `router` | yes | no |
+| `system_program` | no | no |
+
+Arguments:
+
+- None
+
+### `claim_cashback`
+
+| Account | Writable | Signer |
+|---|---:|---:|
+| `owner` | yes | yes |
+| `market` | yes | no |
+| `cashback` | yes | no |
+| `router` | yes | no |
+| `system_program` | no | no |
+
+Arguments:
+
+- None
+
+## Program accounts
+
+| Account | Discriminator |
+|---|---|
+| `BasketMarket` | `59,94,108,97,53,216,244,245` |
+| `Config` | `155,12,170,224,30,250,204,130` |
+| `Cashback` | `230,139,9,221,63,157,62,30` |
+
+## Events
+
+Decode events with the matching release IDL and deduplicate by transaction signature plus event position. Treat failed transactions as having emitted no durable event.
+
+- `BuysPaused`
+- `MarketGraduated`
+- `FeeClaimed`
+- `TradeExecuted`
+- `DirectTradeExecuted`
+- `MarketActivated`
+
+## Errors
+
+Error codes and messages are published verbatim in `idl/basket.json`. Do not retry an unchanged transaction after a deterministic program error.

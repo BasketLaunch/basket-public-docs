@@ -2,7 +2,7 @@
 
 Official integration interface for BASKET, a Solana basket launchpad with up to four underlying coins.
 
-**Mainnet deployment and initialization are finalized. Mainnet buys are enabled. The first customer-driven mainnet lifecycle test is pending; do not mistake activation for completed production testing. Upgrade authority is retained on the owner’s Ledger.**
+**The atomic mainnet release is deployed and buys are enabled. Basket tokens use a fixed 1 billion supply, creation/buy/sell each use one user-signed financial transaction, and the creator/trader pays the disclosed rent. The first customer-driven mainnet lifecycle test is pending; do not mistake activation for an independent audit. Upgrade authority is retained on the owner’s Ledger.**
 
 - [Website documentation](https://basketlaunch.fun/docs)
 - [Anchor IDL](idl/basket.json)

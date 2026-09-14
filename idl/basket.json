@@ -334,17 +334,6 @@
           "signer": true
         },
         {
-          "name": "cashback",
-          "writable": true
-        },
-        {
-          "name": "metadata",
-          "writable": true
-        },
-        {
-          "name": "metadata_program"
-        },
-        {
           "name": "token_program"
         },
         {
@@ -432,17 +421,6 @@
           "signer": true
         },
         {
-          "name": "cashback",
-          "writable": true
-        },
-        {
-          "name": "metadata",
-          "writable": true
-        },
-        {
-          "name": "metadata_program"
-        },
-        {
           "name": "token_program"
         },
         {
@@ -525,6 +503,10 @@
           "writable": true
         },
         {
+          "name": "mint",
+          "writable": true
+        },
+        {
           "name": "supply_vault",
           "writable": true
         },
@@ -594,6 +576,10 @@
           "writable": true
         },
         {
+          "name": "mint",
+          "writable": true
+        },
+        {
           "name": "supply_vault",
           "writable": true
         },
@@ -630,6 +616,60 @@
       ]
     },
     {
+      "name": "finalize_metadata",
+      "docs": [
+        "Publish immutable Metaplex metadata after the financially atomic launch.",
+        "The creator-funded reserve repays the permissionless cranker and returns excess."
+      ],
+      "discriminator": [
+        206,
+        92,
+        87,
+        146,
+        80,
+        171,
+        38,
+        111
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "router",
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "metadata_payer",
+          "writable": true
+        },
+        {
+          "name": "metadata",
+          "writable": true
+        },
+        {
+          "name": "metadata_program"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "claim_creator_fee",
       "discriminator": [
         26,
@@ -650,6 +690,13 @@
         {
           "name": "market",
           "writable": true
+        },
+        {
+          "name": "router",
+          "writable": true
+        },
+        {
+          "name": "system_program"
         }
       ],
       "args": []
@@ -675,6 +722,13 @@
         {
           "name": "market",
           "writable": true
+        },
+        {
+          "name": "router",
+          "writable": true
+        },
+        {
+          "name": "system_program"
         }
       ],
       "args": []
@@ -704,6 +758,13 @@
         {
           "name": "cashback",
           "writable": true
+        },
+        {
+          "name": "router",
+          "writable": true
+        },
+        {
+          "name": "system_program"
         }
       ],
       "args": []
@@ -824,6 +885,38 @@
                 32
               ]
             }
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "uri",
+            "type": "string"
+          },
+          {
+            "name": "metadata_payer",
+            "type": "pubkey"
+          },
+          {
+            "name": "metadata_reserve",
+            "type": "u64"
+          },
+          {
+            "name": "initial_cashback_owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "initial_cashback",
+            "type": "u64"
+          },
+          {
+            "name": "issued_tokens",
+            "type": "u64"
           },
           {
             "name": "virtual_token",
@@ -1050,46 +1143,6 @@
       }
     },
     {
-      "name": "DirectTradeExecuted",
-      "type": {
-        "fields": [
-          {
-            "name": "trader",
-            "type": "pubkey"
-          },
-          {
-            "name": "mint",
-            "type": "pubkey"
-          },
-          {
-            "name": "buy",
-            "type": "bool"
-          },
-          {
-            "name": "tokens",
-            "type": "u64"
-          },
-          {
-            "name": "gross_sol",
-            "type": "u64"
-          },
-          {
-            "name": "venue_sol",
-            "type": "u64"
-          },
-          {
-            "name": "fee_sol",
-            "type": "u64"
-          },
-          {
-            "name": "refund_sol",
-            "type": "u64"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
       "name": "TradeExecuted",
       "type": {
         "fields": [
@@ -1135,6 +1188,46 @@
           },
           {
             "name": "cashback",
+            "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "DirectTradeExecuted",
+      "type": {
+        "fields": [
+          {
+            "name": "trader",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "buy",
+            "type": "bool"
+          },
+          {
+            "name": "tokens",
+            "type": "u64"
+          },
+          {
+            "name": "gross_sol",
+            "type": "u64"
+          },
+          {
+            "name": "venue_sol",
+            "type": "u64"
+          },
+          {
+            "name": "fee_sol",
+            "type": "u64"
+          },
+          {
+            "name": "refund_sol",
             "type": "u64"
           }
         ],
@@ -1248,19 +1341,6 @@
     },
     {
       "discriminator": [
-        82,
-        149,
-        149,
-        104,
-        213,
-        77,
-        80,
-        58
-      ],
-      "name": "DirectTradeExecuted"
-    },
-    {
-      "discriminator": [
         41,
         110,
         64,
@@ -1271,6 +1351,19 @@
         80
       ],
       "name": "TradeExecuted"
+    },
+    {
+      "discriminator": [
+        82,
+        149,
+        149,
+        104,
+        213,
+        77,
+        80,
+        58
+      ],
+      "name": "DirectTradeExecuted"
     },
     {
       "discriminator": [
@@ -1376,6 +1469,11 @@
       "code": 6017,
       "name": "Manifest",
       "msg": "Invalid or expired creator manifest"
+    },
+    {
+      "code": 6018,
+      "name": "Metadata",
+      "msg": "Metadata reserve or finalization is invalid"
     }
   ]
 }
