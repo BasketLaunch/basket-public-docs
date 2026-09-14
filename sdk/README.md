@@ -40,7 +40,7 @@ const backing = reserve.components.map(component => ({
 
 The initial weight, fixed recipe quantity and current vault balance are different values. Display them separately. `readBasketReserve` also verifies the fixed one-billion-token supply and canonical vault ownership.
 
-## Prepare a one-signature buy
+## Prepare an atomic buy
 
 ```ts
 import { PublicKey } from '@solana/web3.js';
@@ -73,7 +73,7 @@ const simulation = await connection.simulateTransaction(built.transaction, {
 });
 if (simulation.value.err) throw new Error('BASKET simulation failed');
 
-// Display prepared.quote, rent and the network fee before this single approval.
+// Display prepared.quote, rent and the network fee before approval.
 const signed = await wallet.signTransaction(built.transaction);
 const signature = await connection.sendRawTransaction(signed.serialize(), {
   maxRetries: 0,
@@ -81,7 +81,7 @@ const signature = await connection.sendRawTransaction(signed.serialize(), {
 });
 ```
 
-`prepareBasketSell` follows the same pattern and never blocks a supported exit because buys are paused. Platforms must reconcile an unknown signature before creating a replacement transaction.
+`prepareBasketSell` follows the same pattern and never blocks a supported exit because buys are paused. Each buy or sell is one atomic financial transaction. A large account set may require a warmed lookup table prepared in an earlier payer-funded transaction. Platforms must reconcile an unknown signature before creating a replacement transaction.
 
 ## Venue adapter contract
 

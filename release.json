@@ -32,6 +32,7 @@
   "activationSignature": "278PHmrhnQvLxrkevbkUREurbX7ph6VsoHshyiMdD97QZjQPYoR6g2MZnT7WfrL4hi1L91NxbgxZBinncAjGWk7c",
   "preparationAddress": "HsmRtKzKcvzh3H7qUY8cdsnyFVdkWYH7cezoRUkz29Zs",
   "preparationFloatLamports": 100000000,
+  "platformFundedPreparationEnabled": false,
   "temporaryBufferRentReturned": true,
   "minimumFirstBuyLamports": 100000000,
   "standardCreationInstruction": "activate_atomic",
