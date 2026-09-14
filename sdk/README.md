@@ -4,6 +4,8 @@ Official TypeScript integration SDK for the deployed BASKET program on Solana ma
 
 The SDK verifies canonical program state and reserve accounts, preserves integer precision, quotes the BASKET curve and fee split, builds buy/sell/claim instructions, discovers markets, and compiles one user-signed v0 transaction. Trading platforms provide a venue adapter for their existing Pump.fun, PumpSwap, Raydium CPMM/CLMM or LaunchLab routing code. The BASKET program validates the complete route again on chain and always enforces its configured fee destination.
 
+The SDK contains no platform signing key and cannot debit BASKET infrastructure wallets. Integrators supply the payer and any lookup tables themselves. The hosted website rejects routes requiring advance preparation so every accepted website action opens exactly one wallet approval.
+
 ```bash
 npm install @basketlaunch/sdk @solana/web3.js
 ```
