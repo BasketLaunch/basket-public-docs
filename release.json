@@ -33,6 +33,7 @@
   "preparationAddress": "HsmRtKzKcvzh3H7qUY8cdsnyFVdkWYH7cezoRUkz29Zs",
   "preparationFloatLamports": 100000000,
   "platformFundedPreparationEnabled": false,
+  "platformFundedMetadataCrankingEnabled": false,
   "temporaryBufferRentReturned": true,
   "minimumFirstBuyLamports": 100000000,
   "standardCreationInstruction": "activate_atomic",

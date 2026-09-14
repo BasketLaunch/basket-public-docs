@@ -8,7 +8,7 @@ Pin the image and metadata JSON before quoting. The standard launch path uses `a
 
 Transactions that exceed Solana's message limits may use permissionless empty venue accounts and a confirmed address lookup table. The creator funds and approves that setup; BASKET does not prepay it. The setup cannot change the recipe or buy assets. The same creator-controlled table can be reused when retrying the unchanged basket. Small launches fit without a setup transaction. Solana transaction fees are nonrefundable.
 
-Metaplex metadata is finalized after the financial transaction by permissionless `finalize_metadata`. Activation stores the immutable identity and reserves its rent in the router, so this step needs no second creator signature. Do not list a new market until its finalized state, mint authority, supply, reserve vaults and metadata all verify.
+Metaplex metadata is finalized after the financial transaction by permissionless `finalize_metadata`. Activation stores the immutable identity and creator-funded reserve in the router. The website asks the creator to approve this follow-up transaction; its successful execution returns the 5,000-lamport base fee to that signer and unused reserve to the metadata payer. BASKET does not fund the transaction. Do not list a new market until its finalized state, mint authority, supply, reserve vaults and metadata all verify.
 
 ## Trade
 
