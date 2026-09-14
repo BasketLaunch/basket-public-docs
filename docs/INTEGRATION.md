@@ -4,7 +4,7 @@ Use the public website docs for the complete explanation: https://basketlaunch.f
 
 ## Launch
 
-Pin the image and metadata JSON before quoting. A launch then uses one user-signed financial transaction: `activate_and_buy` when creator and buyer are the same signing wallet, or `activate_from_manifest` when the creator authorized immutable terms off-chain. That transaction creates the mint, market, router, fixed-supply and buyer accounts; buys every constituent; records fees; mints exactly 1 billion basket tokens once; and transfers the purchased amount from the program-controlled supply vault. A failure in any leg rolls the whole launch back.
+Pin the image and metadata JSON before quoting. The standard launch path uses `activate_atomic`. The basket mint is the deterministic `basket_mint` PDA derived from the buyer and metadata JSON hash, and the buyer token account is its canonical associated token account. The program creates both accounts, so the buyer is the only signer. The same transaction creates the market, router and fixed-supply vault; buys every constituent; records fees; mints exactly 1 billion basket tokens once; and transfers the purchased amount from the program-controlled supply vault. A first buy of at least 0.10 SOL is enforced on chain, and a failure in any leg rolls the whole launch back. The older `activate_and_buy` and `activate_from_manifest` interfaces remain published for compatible integrations.
 
 Transactions that exceed Solana's legacy message or instruction-trace limits may use permissionless empty venue accounts and a confirmed address lookup table prepared in the background. The preparation signer cannot change the recipe, buy assets, move the user's assets or sign the launch. A successful prepared launch reimburses its exact confirmed setup debit plus a separately displayed 25,000-lamport cleanup/retry allowance. The transfer is in the atomic launch transaction, so a failed launch pays nothing. Used and abandoned tables are later deactivated and closed so their rent returns to the preparation wallet; Solana transaction fees remain nonrefundable. Small launches can fit without preparation.
 
@@ -28,7 +28,7 @@ The final launch purchase switches to the BASKET permanent pool, preserving the 
 
 ## Release checks
 
-Check genesis hash, program executable status and ProgramData owner, configured authority/treasury, release hash and pause state. Mainnet chain is `solana:mainnet`; devnet authorization is not reusable. The interface is currently pre-release and no independent audit is published.
+Check genesis hash, program executable status and ProgramData owner, configured authority/treasury, release hash and pause state. Mainnet chain is `solana:mainnet`; devnet authorization is not reusable. The published release is active on mainnet and no independent audit is published.
 
 Index finalized events using the exact IDL. Deduplicate by signature and event index, and subtract actual refunds from reported volume. Do not imply that unrelated external pools enforce BASKET fees.
 

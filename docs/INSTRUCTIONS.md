@@ -130,6 +130,32 @@ Arguments:
 - `creator_share_bps`: `"u16"`
 - `identity`: `{"defined":{"name":"BasketIdentity"}}`
 
+### `activate_atomic`
+
+Preferred one-wallet creation path. The program creates the deterministic mint and canonical buyer token account; the buyer is the only required signer. All constituent acquisitions, recipe creation, fees and fixed-supply initialization roll back together. The on-chain first-buy minimum is 0.10 SOL.
+
+| Account | Writable | Signer |
+|---|---:|---:|
+| `buyer` | yes | yes |
+| `config` | no | no |
+| `mint` | yes | no |
+| `market` | yes | no |
+| `router` | yes | no |
+| `supply_vault` | yes | no |
+| `buyer_tokens` | yes | no |
+| `token_program` | no | no |
+| `associated_token_program` | no | no |
+| `system_program` | no | no |
+
+Arguments:
+
+- `weights`: `{"vec":"u16"}`
+- `min_components`: `{"vec":"u64"}`
+- `gross_sol`: `"u64"`
+- `min_tokens`: `"u64"`
+- `creator_share_bps`: `"u16"`
+- `identity`: `{"defined":{"name":"BasketIdentity"}}`
+
 ### `activate_from_manifest`
 
 A zero-dev-buy creator authorizes fixed terms off-chain; the first buyer pays atomically.

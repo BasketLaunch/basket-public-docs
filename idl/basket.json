@@ -376,6 +376,96 @@
       ]
     },
     {
+      "name": "activate_atomic",
+      "docs": [
+        "Single-wallet creation. The mint and buyer token account are deterministic",
+        "accounts created by the program, so the buyer is the only required signer."
+      ],
+      "discriminator": [
+        11,
+        86,
+        64,
+        196,
+        91,
+        53,
+        110,
+        61
+      ],
+      "accounts": [
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config"
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "market",
+          "writable": true
+        },
+        {
+          "name": "router",
+          "writable": true
+        },
+        {
+          "name": "supply_vault",
+          "writable": true
+        },
+        {
+          "name": "buyer_tokens",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program"
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "weights",
+          "type": {
+            "vec": "u16"
+          }
+        },
+        {
+          "name": "min_components",
+          "type": {
+            "vec": "u64"
+          }
+        },
+        {
+          "name": "gross_sol",
+          "type": "u64"
+        },
+        {
+          "name": "min_tokens",
+          "type": "u64"
+        },
+        {
+          "name": "creator_share_bps",
+          "type": "u16"
+        },
+        {
+          "name": "identity",
+          "type": {
+            "defined": {
+              "name": "BasketIdentity"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "activate_from_manifest",
       "docs": [
         "A zero-dev-buy creator authorizes fixed terms off-chain; the first buyer pays atomically."
@@ -1083,59 +1173,39 @@
       }
     },
     {
-      "name": "BuysPaused",
+      "name": "DirectTradeExecuted",
       "type": {
         "fields": [
           {
-            "name": "paused",
-            "type": "bool"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
-      "name": "MarketGraduated",
-      "type": {
-        "fields": [
+            "name": "trader",
+            "type": "pubkey"
+          },
           {
             "name": "mint",
             "type": "pubkey"
           },
           {
-            "name": "pool_tokens",
+            "name": "buy",
+            "type": "bool"
+          },
+          {
+            "name": "tokens",
             "type": "u64"
           },
           {
-            "name": "composite",
+            "name": "gross_sol",
             "type": "u64"
           },
           {
-            "name": "locked_tokens",
+            "name": "venue_sol",
             "type": "u64"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
-      "name": "FeeClaimed",
-      "type": {
-        "fields": [
-          {
-            "name": "market",
-            "type": "pubkey"
           },
           {
-            "name": "owner",
-            "type": "pubkey"
+            "name": "fee_sol",
+            "type": "u64"
           },
           {
-            "name": "kind",
-            "type": "u8"
-          },
-          {
-            "name": "lamports",
+            "name": "refund_sol",
             "type": "u64"
           }
         ],
@@ -1195,39 +1265,59 @@
       }
     },
     {
-      "name": "DirectTradeExecuted",
+      "name": "BuysPaused",
       "type": {
         "fields": [
           {
-            "name": "trader",
+            "name": "paused",
+            "type": "bool"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "FeeClaimed",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
             "type": "pubkey"
           },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "lamports",
+            "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "MarketGraduated",
+      "type": {
+        "fields": [
           {
             "name": "mint",
             "type": "pubkey"
           },
           {
-            "name": "buy",
-            "type": "bool"
-          },
-          {
-            "name": "tokens",
+            "name": "pool_tokens",
             "type": "u64"
           },
           {
-            "name": "gross_sol",
+            "name": "composite",
             "type": "u64"
           },
           {
-            "name": "venue_sol",
-            "type": "u64"
-          },
-          {
-            "name": "fee_sol",
-            "type": "u64"
-          },
-          {
-            "name": "refund_sol",
+            "name": "locked_tokens",
             "type": "u64"
           }
         ],
@@ -1302,42 +1392,16 @@
   "events": [
     {
       "discriminator": [
-        81,
-        41,
-        138,
-        93,
-        20,
-        219,
-        184,
-        33
-      ],
-      "name": "BuysPaused"
-    },
-    {
-      "discriminator": [
-        66,
-        242,
-        94,
-        146,
-        88,
-        76,
-        225,
-        23
-      ],
-      "name": "MarketGraduated"
-    },
-    {
-      "discriminator": [
-        202,
-        108,
-        15,
+        82,
+        149,
+        149,
+        104,
+        213,
+        77,
         80,
-        101,
-        18,
-        217,
-        158
+        58
       ],
-      "name": "FeeClaimed"
+      "name": "DirectTradeExecuted"
     },
     {
       "discriminator": [
@@ -1354,16 +1418,42 @@
     },
     {
       "discriminator": [
-        82,
-        149,
-        149,
-        104,
-        213,
-        77,
-        80,
-        58
+        81,
+        41,
+        138,
+        93,
+        20,
+        219,
+        184,
+        33
       ],
-      "name": "DirectTradeExecuted"
+      "name": "BuysPaused"
+    },
+    {
+      "discriminator": [
+        202,
+        108,
+        15,
+        80,
+        101,
+        18,
+        217,
+        158
+      ],
+      "name": "FeeClaimed"
+    },
+    {
+      "discriminator": [
+        66,
+        242,
+        94,
+        146,
+        88,
+        76,
+        225,
+        23
+      ],
+      "name": "MarketGraduated"
     },
     {
       "discriminator": [
