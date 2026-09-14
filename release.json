@@ -11,6 +11,11 @@
   "idlSha256": "c652c9c063e679dc563ca2bbbf6daaed6403e24b5f4cab204c5d743658a95dc8",
   "implementationSourcePublished": false,
   "referenceSourcePublished": true,
+  "sdk": {
+    "package": "@basketlaunch/sdk",
+    "version": "0.1.0",
+    "mainnetOnly": true
+  },
   "independentAuditPublished": false,
   "verifiedAt": "2026-09-14T16:52:09Z",
   "verifiedSlot": 447026669,

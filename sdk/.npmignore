@@ -1,0 +1,5 @@
+src/
+test/
+node_modules/
+pack-dry-run.json
+tsconfig.json
