@@ -1242,6 +1242,22 @@
       }
     },
     {
+      "name": "AbandonedSetupReclaimed",
+      "type": {
+        "fields": [
+          {
+            "name": "basket_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "lamports",
+            "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
       "name": "FeeClaimed",
       "type": {
         "fields": [
@@ -1259,137 +1275,6 @@
           },
           {
             "name": "lamports",
-            "type": "u64"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
-      "name": "MarketGraduated",
-      "type": {
-        "fields": [
-          {
-            "name": "mint",
-            "type": "pubkey"
-          },
-          {
-            "name": "pool_tokens",
-            "type": "u64"
-          },
-          {
-            "name": "composite",
-            "type": "u64"
-          },
-          {
-            "name": "locked_tokens",
-            "type": "u64"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
-      "name": "AbandonedSetupReclaimed",
-      "type": {
-        "fields": [
-          {
-            "name": "basket_mint",
-            "type": "pubkey"
-          },
-          {
-            "name": "lamports",
-            "type": "u64"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
-      "name": "MarketComponentsExtended",
-      "type": {
-        "fields": [
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "mints",
-            "type": {
-              "array": [
-                "pubkey",
-                4
-              ]
-            }
-          },
-          {
-            "name": "weights",
-            "type": {
-              "array": [
-                "u16",
-                4
-              ]
-            }
-          },
-          {
-            "name": "recipe",
-            "type": {
-              "array": [
-                "u64",
-                4
-              ]
-            }
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
-      "name": "TradeExecuted",
-      "type": {
-        "fields": [
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "trader",
-            "type": "pubkey"
-          },
-          {
-            "name": "sequence",
-            "type": "u64"
-          },
-          {
-            "name": "buy",
-            "type": "bool"
-          },
-          {
-            "name": "tokens",
-            "type": "u64"
-          },
-          {
-            "name": "composite",
-            "type": "u64"
-          },
-          {
-            "name": "gross_sol",
-            "type": "u64"
-          },
-          {
-            "name": "refund_sol",
-            "type": "u64"
-          },
-          {
-            "name": "platform_fee",
-            "type": "u64"
-          },
-          {
-            "name": "creator_fee",
-            "type": "u64"
-          },
-          {
-            "name": "cashback",
             "type": "u64"
           }
         ],
@@ -1461,6 +1346,121 @@
       }
     },
     {
+      "name": "MarketComponentsExtended",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "mints",
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
+          },
+          {
+            "name": "weights",
+            "type": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
+          },
+          {
+            "name": "recipe",
+            "type": {
+              "array": [
+                "u64",
+                4
+              ]
+            }
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "MarketGraduated",
+      "type": {
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "composite",
+            "type": "u64"
+          },
+          {
+            "name": "locked_tokens",
+            "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "TradeExecuted",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "trader",
+            "type": "pubkey"
+          },
+          {
+            "name": "sequence",
+            "type": "u64"
+          },
+          {
+            "name": "buy",
+            "type": "bool"
+          },
+          {
+            "name": "tokens",
+            "type": "u64"
+          },
+          {
+            "name": "composite",
+            "type": "u64"
+          },
+          {
+            "name": "gross_sol",
+            "type": "u64"
+          },
+          {
+            "name": "refund_sol",
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee",
+            "type": "u64"
+          },
+          {
+            "name": "creator_fee",
+            "type": "u64"
+          },
+          {
+            "name": "cashback",
+            "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
       "name": "DirectTradeExecuted",
       "type": {
         "fields": [
@@ -1517,6 +1517,19 @@
     },
     {
       "discriminator": [
+        89,
+        106,
+        19,
+        202,
+        239,
+        145,
+        46,
+        248
+      ],
+      "name": "AbandonedSetupReclaimed"
+    },
+    {
+      "discriminator": [
         202,
         108,
         15,
@@ -1530,29 +1543,16 @@
     },
     {
       "discriminator": [
-        66,
-        242,
-        94,
-        146,
-        88,
-        76,
-        225,
-        23
+        196,
+        73,
+        78,
+        48,
+        187,
+        132,
+        107,
+        11
       ],
-      "name": "MarketGraduated"
-    },
-    {
-      "discriminator": [
-        89,
-        106,
-        19,
-        202,
-        239,
-        145,
-        46,
-        248
-      ],
-      "name": "AbandonedSetupReclaimed"
+      "name": "MarketActivated"
     },
     {
       "discriminator": [
@@ -1569,6 +1569,19 @@
     },
     {
       "discriminator": [
+        66,
+        242,
+        94,
+        146,
+        88,
+        76,
+        225,
+        23
+      ],
+      "name": "MarketGraduated"
+    },
+    {
+      "discriminator": [
         41,
         110,
         64,
@@ -1579,19 +1592,6 @@
         80
       ],
       "name": "TradeExecuted"
-    },
-    {
-      "discriminator": [
-        196,
-        73,
-        78,
-        48,
-        187,
-        132,
-        107,
-        11
-      ],
-      "name": "MarketActivated"
     },
     {
       "discriminator": [

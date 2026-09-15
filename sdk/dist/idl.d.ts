@@ -762,6 +762,18 @@ declare const idl: {
             readonly kind: "struct";
         };
     }, {
+        readonly name: "AbandonedSetupReclaimed";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "basket_mint";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "lamports";
+                readonly type: "u64";
+            }];
+            readonly kind: "struct";
+        };
+    }, {
         readonly name: "FeeClaimed";
         readonly type: {
             readonly fields: readonly [{
@@ -775,99 +787,6 @@ declare const idl: {
                 readonly type: "u8";
             }, {
                 readonly name: "lamports";
-                readonly type: "u64";
-            }];
-            readonly kind: "struct";
-        };
-    }, {
-        readonly name: "MarketGraduated";
-        readonly type: {
-            readonly fields: readonly [{
-                readonly name: "mint";
-                readonly type: "pubkey";
-            }, {
-                readonly name: "pool_tokens";
-                readonly type: "u64";
-            }, {
-                readonly name: "composite";
-                readonly type: "u64";
-            }, {
-                readonly name: "locked_tokens";
-                readonly type: "u64";
-            }];
-            readonly kind: "struct";
-        };
-    }, {
-        readonly name: "AbandonedSetupReclaimed";
-        readonly type: {
-            readonly fields: readonly [{
-                readonly name: "basket_mint";
-                readonly type: "pubkey";
-            }, {
-                readonly name: "lamports";
-                readonly type: "u64";
-            }];
-            readonly kind: "struct";
-        };
-    }, {
-        readonly name: "MarketComponentsExtended";
-        readonly type: {
-            readonly fields: readonly [{
-                readonly name: "market";
-                readonly type: "pubkey";
-            }, {
-                readonly name: "mints";
-                readonly type: {
-                    readonly array: readonly ["pubkey", 4];
-                };
-            }, {
-                readonly name: "weights";
-                readonly type: {
-                    readonly array: readonly ["u16", 4];
-                };
-            }, {
-                readonly name: "recipe";
-                readonly type: {
-                    readonly array: readonly ["u64", 4];
-                };
-            }];
-            readonly kind: "struct";
-        };
-    }, {
-        readonly name: "TradeExecuted";
-        readonly type: {
-            readonly fields: readonly [{
-                readonly name: "market";
-                readonly type: "pubkey";
-            }, {
-                readonly name: "trader";
-                readonly type: "pubkey";
-            }, {
-                readonly name: "sequence";
-                readonly type: "u64";
-            }, {
-                readonly name: "buy";
-                readonly type: "bool";
-            }, {
-                readonly name: "tokens";
-                readonly type: "u64";
-            }, {
-                readonly name: "composite";
-                readonly type: "u64";
-            }, {
-                readonly name: "gross_sol";
-                readonly type: "u64";
-            }, {
-                readonly name: "refund_sol";
-                readonly type: "u64";
-            }, {
-                readonly name: "platform_fee";
-                readonly type: "u64";
-            }, {
-                readonly name: "creator_fee";
-                readonly type: "u64";
-            }, {
-                readonly name: "cashback";
                 readonly type: "u64";
             }];
             readonly kind: "struct";
@@ -914,6 +833,87 @@ declare const idl: {
             readonly kind: "struct";
         };
     }, {
+        readonly name: "MarketComponentsExtended";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "market";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "mints";
+                readonly type: {
+                    readonly array: readonly ["pubkey", 4];
+                };
+            }, {
+                readonly name: "weights";
+                readonly type: {
+                    readonly array: readonly ["u16", 4];
+                };
+            }, {
+                readonly name: "recipe";
+                readonly type: {
+                    readonly array: readonly ["u64", 4];
+                };
+            }];
+            readonly kind: "struct";
+        };
+    }, {
+        readonly name: "MarketGraduated";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "mint";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "pool_tokens";
+                readonly type: "u64";
+            }, {
+                readonly name: "composite";
+                readonly type: "u64";
+            }, {
+                readonly name: "locked_tokens";
+                readonly type: "u64";
+            }];
+            readonly kind: "struct";
+        };
+    }, {
+        readonly name: "TradeExecuted";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "market";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "trader";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "sequence";
+                readonly type: "u64";
+            }, {
+                readonly name: "buy";
+                readonly type: "bool";
+            }, {
+                readonly name: "tokens";
+                readonly type: "u64";
+            }, {
+                readonly name: "composite";
+                readonly type: "u64";
+            }, {
+                readonly name: "gross_sol";
+                readonly type: "u64";
+            }, {
+                readonly name: "refund_sol";
+                readonly type: "u64";
+            }, {
+                readonly name: "platform_fee";
+                readonly type: "u64";
+            }, {
+                readonly name: "creator_fee";
+                readonly type: "u64";
+            }, {
+                readonly name: "cashback";
+                readonly type: "u64";
+            }];
+            readonly kind: "struct";
+        };
+    }, {
         readonly name: "DirectTradeExecuted";
         readonly type: {
             readonly fields: readonly [{
@@ -948,23 +948,23 @@ declare const idl: {
         readonly discriminator: readonly [81, 41, 138, 93, 20, 219, 184, 33];
         readonly name: "BuysPaused";
     }, {
+        readonly discriminator: readonly [89, 106, 19, 202, 239, 145, 46, 248];
+        readonly name: "AbandonedSetupReclaimed";
+    }, {
         readonly discriminator: readonly [202, 108, 15, 80, 101, 18, 217, 158];
         readonly name: "FeeClaimed";
     }, {
-        readonly discriminator: readonly [66, 242, 94, 146, 88, 76, 225, 23];
-        readonly name: "MarketGraduated";
-    }, {
-        readonly discriminator: readonly [89, 106, 19, 202, 239, 145, 46, 248];
-        readonly name: "AbandonedSetupReclaimed";
+        readonly discriminator: readonly [196, 73, 78, 48, 187, 132, 107, 11];
+        readonly name: "MarketActivated";
     }, {
         readonly discriminator: readonly [71, 139, 205, 77, 10, 72, 123, 79];
         readonly name: "MarketComponentsExtended";
     }, {
+        readonly discriminator: readonly [66, 242, 94, 146, 88, 76, 225, 23];
+        readonly name: "MarketGraduated";
+    }, {
         readonly discriminator: readonly [41, 110, 64, 129, 60, 79, 179, 80];
         readonly name: "TradeExecuted";
-    }, {
-        readonly discriminator: readonly [196, 73, 78, 48, 187, 132, 107, 11];
-        readonly name: "MarketActivated";
     }, {
         readonly discriminator: readonly [82, 149, 149, 104, 213, 77, 80, 58];
         readonly name: "DirectTradeExecuted";
