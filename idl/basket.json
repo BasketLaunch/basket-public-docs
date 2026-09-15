@@ -92,6 +92,60 @@
       ]
     },
     {
+      "name": "reclaim_abandoned_setup",
+      "docs": [
+        "Close obsolete, empty settlement accounts from the retired preparation flow.",
+        "This is permissionless during a global buy pause and always pays the configured treasury."
+      ],
+      "discriminator": [
+        137,
+        243,
+        196,
+        164,
+        237,
+        198,
+        64,
+        232
+      ],
+      "accounts": [
+        {
+          "name": "config"
+        },
+        {
+          "name": "market"
+        },
+        {
+          "name": "router",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "token_2022_program"
+        },
+        {
+          "name": "pump_amm_program"
+        },
+        {
+          "name": "pump_event_authority"
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "_basket_mint",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "prepare_direct_quote",
       "discriminator": [
         231,
@@ -1176,30 +1230,6 @@
       }
     },
     {
-      "name": "MarketGraduated",
-      "type": {
-        "fields": [
-          {
-            "name": "mint",
-            "type": "pubkey"
-          },
-          {
-            "name": "pool_tokens",
-            "type": "u64"
-          },
-          {
-            "name": "composite",
-            "type": "u64"
-          },
-          {
-            "name": "locked_tokens",
-            "type": "u64"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
       "name": "BuysPaused",
       "type": {
         "fields": [
@@ -1236,39 +1266,39 @@
       }
     },
     {
-      "name": "DirectTradeExecuted",
+      "name": "MarketGraduated",
       "type": {
         "fields": [
-          {
-            "name": "trader",
-            "type": "pubkey"
-          },
           {
             "name": "mint",
             "type": "pubkey"
           },
           {
-            "name": "buy",
-            "type": "bool"
-          },
-          {
-            "name": "tokens",
+            "name": "pool_tokens",
             "type": "u64"
           },
           {
-            "name": "gross_sol",
+            "name": "composite",
             "type": "u64"
           },
           {
-            "name": "venue_sol",
+            "name": "locked_tokens",
             "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "AbandonedSetupReclaimed",
+      "type": {
+        "fields": [
+          {
+            "name": "basket_mint",
+            "type": "pubkey"
           },
           {
-            "name": "fee_sol",
-            "type": "u64"
-          },
-          {
-            "name": "refund_sol",
+            "name": "lamports",
             "type": "u64"
           }
         ],
@@ -1429,22 +1459,49 @@
         ],
         "kind": "struct"
       }
+    },
+    {
+      "name": "DirectTradeExecuted",
+      "type": {
+        "fields": [
+          {
+            "name": "trader",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "buy",
+            "type": "bool"
+          },
+          {
+            "name": "tokens",
+            "type": "u64"
+          },
+          {
+            "name": "gross_sol",
+            "type": "u64"
+          },
+          {
+            "name": "venue_sol",
+            "type": "u64"
+          },
+          {
+            "name": "fee_sol",
+            "type": "u64"
+          },
+          {
+            "name": "refund_sol",
+            "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
     }
   ],
   "events": [
-    {
-      "discriminator": [
-        66,
-        242,
-        94,
-        146,
-        88,
-        76,
-        225,
-        23
-      ],
-      "name": "MarketGraduated"
-    },
     {
       "discriminator": [
         81,
@@ -1473,16 +1530,29 @@
     },
     {
       "discriminator": [
-        82,
-        149,
-        149,
-        104,
-        213,
-        77,
-        80,
-        58
+        66,
+        242,
+        94,
+        146,
+        88,
+        76,
+        225,
+        23
       ],
-      "name": "DirectTradeExecuted"
+      "name": "MarketGraduated"
+    },
+    {
+      "discriminator": [
+        89,
+        106,
+        19,
+        202,
+        239,
+        145,
+        46,
+        248
+      ],
+      "name": "AbandonedSetupReclaimed"
     },
     {
       "discriminator": [
@@ -1522,6 +1592,19 @@
         11
       ],
       "name": "MarketActivated"
+    },
+    {
+      "discriminator": [
+        82,
+        149,
+        149,
+        104,
+        213,
+        77,
+        80,
+        58
+      ],
+      "name": "DirectTradeExecuted"
     }
   ],
   "errors": [

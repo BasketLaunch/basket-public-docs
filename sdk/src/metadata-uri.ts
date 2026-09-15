@@ -1,16 +1,11 @@
 import { z } from 'zod';
 
-function publicHttpsUri(uri:string) {
-  if (new TextEncoder().encode(uri).length > 200 || uri.includes('?') || uri.includes('#')) return false;
-  const authority=uri.startsWith('https://')?uri.slice(8).split('/',1)[0]:'';
-  if(!authority||authority.includes('@')||authority.includes(':'))return false;
-  let parsed:URL;
-  try { parsed=new URL(uri); } catch { return false; }
-  const host=parsed.hostname.toLowerCase();
-  return parsed.protocol==='https:' && !parsed.username && !parsed.password && !parsed.port
-    && parsed.pathname.length>1 && host.includes('.') && host!=='localhost' && !host.endsWith('.local')
-    && !/^\d+(?:\.\d+){3}$/.test(host);
-}
+const ipfsCid = z.string().regex(/^baf(?:ybei|krei)[a-z2-7]{51}[aeimquy4]$/);
+const basketContentPrefix='https://basketlaunch.fun/api/backend/storage/content/';
 
 /** Storage is supplied by the integrating launcher. This SDK never uploads to BASKET. */
-export const metadataUri = z.string().min(12).max(200).refine(publicHttpsUri, 'Use a public HTTPS metadata URI');
+export const metadataUri = z.string().refine(uri =>
+  /^https:\/\/(?:arweave\.net|gateway\.irys\.xyz)\/[A-Za-z0-9_-]{43}$/.test(uri)
+  || uri.startsWith('https://ipfs.io/ipfs/') && ipfsCid.safeParse(uri.slice('https://ipfs.io/ipfs/'.length)).success
+  || uri.startsWith(basketContentPrefix) && ipfsCid.safeParse(uri.slice(basketContentPrefix.length)).success,
+  'Use a supported immutable metadata URI');

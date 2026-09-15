@@ -1,6 +1,8 @@
 # @basketlaunch/sdk
 
-The SDK does not upload files or grant access to BASKET storage. Integrators must publish their image and metadata JSON at their own public HTTPS URLs, then pass the metadata URI and exact SHA-256 to the launch builder.
+The SDK does not upload files or grant access to BASKET storage. Integrators publish their image and metadata JSON through their own supported IPFS, Arweave, or Irys provider, then pass the metadata URI and exact SHA-256 to the launch builder.
+
+Metadata JSON follows the launchpad-compatible top-level shape: `name`, `symbol`, `description`, `image`, `showName`, `createdOn`, `twitter`, and `website`. BASKET-specific recipe and hash-verification fields may be included alongside it.
 
 Official TypeScript integration SDK for the active BASKET program on Solana mainnet.
 

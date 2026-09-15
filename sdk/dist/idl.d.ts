@@ -51,6 +51,35 @@ declare const idl: {
             readonly type: "pubkey";
         }];
     }, {
+        readonly name: "reclaim_abandoned_setup";
+        readonly docs: readonly ["Close obsolete, empty settlement accounts from the retired preparation flow.", "This is permissionless during a global buy pause and always pays the configured treasury."];
+        readonly discriminator: readonly [137, 243, 196, 164, 237, 198, 64, 232];
+        readonly accounts: readonly [{
+            readonly name: "config";
+        }, {
+            readonly name: "market";
+        }, {
+            readonly name: "router";
+            readonly writable: true;
+        }, {
+            readonly name: "treasury";
+            readonly writable: true;
+        }, {
+            readonly name: "token_program";
+        }, {
+            readonly name: "token_2022_program";
+        }, {
+            readonly name: "pump_amm_program";
+        }, {
+            readonly name: "pump_event_authority";
+        }, {
+            readonly name: "system_program";
+        }];
+        readonly args: readonly [{
+            readonly name: "_basket_mint";
+            readonly type: "pubkey";
+        }];
+    }, {
         readonly name: "prepare_direct_quote";
         readonly discriminator: readonly [231, 124, 126, 41, 95, 16, 151, 169];
         readonly accounts: readonly [{
@@ -724,24 +753,6 @@ declare const idl: {
             }];
         };
     }, {
-        readonly name: "MarketGraduated";
-        readonly type: {
-            readonly fields: readonly [{
-                readonly name: "mint";
-                readonly type: "pubkey";
-            }, {
-                readonly name: "pool_tokens";
-                readonly type: "u64";
-            }, {
-                readonly name: "composite";
-                readonly type: "u64";
-            }, {
-                readonly name: "locked_tokens";
-                readonly type: "u64";
-            }];
-            readonly kind: "struct";
-        };
-    }, {
         readonly name: "BuysPaused";
         readonly type: {
             readonly fields: readonly [{
@@ -769,31 +780,31 @@ declare const idl: {
             readonly kind: "struct";
         };
     }, {
-        readonly name: "DirectTradeExecuted";
+        readonly name: "MarketGraduated";
         readonly type: {
             readonly fields: readonly [{
-                readonly name: "trader";
-                readonly type: "pubkey";
-            }, {
                 readonly name: "mint";
                 readonly type: "pubkey";
             }, {
-                readonly name: "buy";
-                readonly type: "bool";
-            }, {
-                readonly name: "tokens";
+                readonly name: "pool_tokens";
                 readonly type: "u64";
             }, {
-                readonly name: "gross_sol";
+                readonly name: "composite";
                 readonly type: "u64";
             }, {
-                readonly name: "venue_sol";
+                readonly name: "locked_tokens";
                 readonly type: "u64";
+            }];
+            readonly kind: "struct";
+        };
+    }, {
+        readonly name: "AbandonedSetupReclaimed";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "basket_mint";
+                readonly type: "pubkey";
             }, {
-                readonly name: "fee_sol";
-                readonly type: "u64";
-            }, {
-                readonly name: "refund_sol";
+                readonly name: "lamports";
                 readonly type: "u64";
             }];
             readonly kind: "struct";
@@ -902,19 +913,49 @@ declare const idl: {
             }];
             readonly kind: "struct";
         };
+    }, {
+        readonly name: "DirectTradeExecuted";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "trader";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "mint";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "buy";
+                readonly type: "bool";
+            }, {
+                readonly name: "tokens";
+                readonly type: "u64";
+            }, {
+                readonly name: "gross_sol";
+                readonly type: "u64";
+            }, {
+                readonly name: "venue_sol";
+                readonly type: "u64";
+            }, {
+                readonly name: "fee_sol";
+                readonly type: "u64";
+            }, {
+                readonly name: "refund_sol";
+                readonly type: "u64";
+            }];
+            readonly kind: "struct";
+        };
     }];
     readonly events: readonly [{
-        readonly discriminator: readonly [66, 242, 94, 146, 88, 76, 225, 23];
-        readonly name: "MarketGraduated";
-    }, {
         readonly discriminator: readonly [81, 41, 138, 93, 20, 219, 184, 33];
         readonly name: "BuysPaused";
     }, {
         readonly discriminator: readonly [202, 108, 15, 80, 101, 18, 217, 158];
         readonly name: "FeeClaimed";
     }, {
-        readonly discriminator: readonly [82, 149, 149, 104, 213, 77, 80, 58];
-        readonly name: "DirectTradeExecuted";
+        readonly discriminator: readonly [66, 242, 94, 146, 88, 76, 225, 23];
+        readonly name: "MarketGraduated";
+    }, {
+        readonly discriminator: readonly [89, 106, 19, 202, 239, 145, 46, 248];
+        readonly name: "AbandonedSetupReclaimed";
     }, {
         readonly discriminator: readonly [71, 139, 205, 77, 10, 72, 123, 79];
         readonly name: "MarketComponentsExtended";
@@ -924,6 +965,9 @@ declare const idl: {
     }, {
         readonly discriminator: readonly [196, 73, 78, 48, 187, 132, 107, 11];
         readonly name: "MarketActivated";
+    }, {
+        readonly discriminator: readonly [82, 149, 149, 104, 213, 77, 80, 58];
+        readonly name: "DirectTradeExecuted";
     }];
     readonly errors: readonly [{
         readonly code: 6000;
