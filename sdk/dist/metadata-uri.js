@@ -1,9 +1,22 @@
 import { z } from 'zod';
-// Fixed content identifiers only: no mutable names, queries, credentials or paths.
-// CIDv1 base32, sha2-256, dag-pb or raw; uploads request CIDv1.
-export const ipfsCid = z.string().regex(/^baf(?:ybei|krei)[a-z2-7]{51}[aeimquy4]$/);
-export const metadataUri = z.string().refine(uri => /^https:\/\/(?:arweave\.net|gateway\.irys\.xyz)\/[A-Za-z0-9_-]{43}$/.test(uri) || uri.startsWith('https://ipfs.io/ipfs/') && ipfsCid.safeParse(uri.slice('https://ipfs.io/ipfs/'.length)).success, 'Use a supported immutable metadata URI');
-export function metadataDisplayUri(uri) {
-    return uri.startsWith('https://ipfs.io/ipfs/') && metadataUri.safeParse(uri).success ? '/api/backend/storage/content/' + uri.slice('https://ipfs.io/ipfs/'.length) : uri;
+function publicHttpsUri(uri) {
+    if (new TextEncoder().encode(uri).length > 200 || uri.includes('?') || uri.includes('#'))
+        return false;
+    const authority = uri.startsWith('https://') ? uri.slice(8).split('/', 1)[0] : '';
+    if (!authority || authority.includes('@') || authority.includes(':'))
+        return false;
+    let parsed;
+    try {
+        parsed = new URL(uri);
+    }
+    catch {
+        return false;
+    }
+    const host = parsed.hostname.toLowerCase();
+    return parsed.protocol === 'https:' && !parsed.username && !parsed.password && !parsed.port
+        && parsed.pathname.length > 1 && host.includes('.') && host !== 'localhost' && !host.endsWith('.local')
+        && !/^\d+(?:\.\d+){3}$/.test(host);
 }
+/** Storage is supplied by the integrating launcher. This SDK never uploads to BASKET. */
+export const metadataUri = z.string().min(12).max(200).refine(publicHttpsUri, 'Use a public HTTPS metadata URI');
 //# sourceMappingURL=metadata-uri.js.map

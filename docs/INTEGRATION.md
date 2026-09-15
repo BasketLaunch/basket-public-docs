@@ -1,5 +1,7 @@
 # Integrating BASKET
 
+The SDK does not upload files or grant access to BASKET storage. Integrators must publish their image and metadata JSON at their own public HTTPS URLs, then pass the metadata URI and exact SHA-256 to the launch builder.
+
 > Candidate SDK branch: Token-2022 + transaction v1. The published mainnet release remains authoritative until the matching program upgrade is finalized and `release.json` is updated.
 
 Use the public website docs for the complete explanation: https://basketlaunch.fun/docs

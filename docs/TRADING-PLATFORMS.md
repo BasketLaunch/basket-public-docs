@@ -1,5 +1,7 @@
 # Trading-platform integration: an Axiom-style terminal
 
+The SDK does not upload files or grant access to BASKET storage. Integrators must publish their image and metadata JSON at their own public HTTPS URLs, then pass the metadata URI and exact SHA-256 to the launch builder.
+
 > Candidate SDK branch: Token-2022 + transaction v1. Keep the current mainnet release pinned until the matching program upgrade and release manifest are finalized.
 
 This describes how a third-party terminal could integrate BASKET. It does not claim an Axiom partnership, listing, or existing support. Integrators call the Solana program directly; BASKET website sessions and private backend endpoints are not a public partner API.
