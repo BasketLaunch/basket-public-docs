@@ -6,7 +6,7 @@ import { BASKET_PROGRAM_ID, BASKET_PROGRAM_SHA256, MAX_COMPONENTS, MAX_LAUNCH_CO
 test('release constants and canonical addresses are stable', () => {
   assert.equal(BASKET_PROGRAM_ID.toBase58(), '149WKoc5878Sx5EWjHGhPBL4vsoogY9og7ffkzdu39LM');
   assert.equal(NETWORK_GENESIS, '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d');
-  assert.equal(BASKET_PROGRAM_SHA256, 'adf5beaebe9dd5fb009faab7e462972dc6394d86f37a5bf1e243501f441a187e');
+  assert.equal(BASKET_PROGRAM_SHA256, 'acc0929211d40976c1de289a413a099584466a867c87905404afcb651a7950bd');
   assert.equal(SUPPLY, 1_000_000_000_000_000n);
   const mint = new PublicKey('BaKsojZCi8W7Po2kCTo1uaNRvJ6iynxAjuhow5jJRqKL');
   assert.equal(basketAddresses(mint, mint).market.toBase58(), '3fsLRtbesaxbk4nz8ccF99Joko9ZcBgRK4W4BaBPR4uZ');

@@ -1,5 +1,9 @@
 # @basketlaunch/sdk
 
+The SDK does not upload files or grant access to BASKET storage. Integrators publish their image and metadata JSON through their own supported IPFS, Arweave, or Irys provider, then pass the metadata URI and exact SHA-256 to the launch builder.
+
+Metadata JSON follows the launchpad-compatible top-level shape: `name`, `symbol`, `description`, `image`, `showName`, `createdOn`, `twitter`, and `website`. BASKET-specific recipe and hash-verification fields may be included alongside it.
+
 Official TypeScript integration SDK for the active BASKET program on Solana mainnet.
 
 The SDK verifies canonical program state and reserve accounts, preserves integer precision, quotes the BASKET curve and fee split, builds creation/buy/sell/claim instructions, discovers markets, and compiles and simulates one user-signed transaction-v1 message for new Token-2022 markets. Trading platforms provide a venue adapter for their existing Pump.fun, PumpSwap, Raydium CPMM/CLMM or LaunchLab routing code. The BASKET program validates the complete route again on chain and always enforces its configured fee destination.

@@ -1,5 +1,9 @@
 # Integrating BASKET
 
+The SDK does not upload files or grant access to BASKET storage. Integrators publish their image and metadata JSON through their own supported IPFS, Arweave, or Irys provider, then pass the metadata URI and exact SHA-256 to the launch builder.
+
+Use the standard top-level metadata fields `name`, `symbol`, `description`, `image`, `showName`, `createdOn`, `twitter`, and `website`. The BASKET website adds its immutable recipe and file-verification fields to the same JSON document.
+
 > Candidate SDK branch: Token-2022 + transaction v1. The published mainnet release remains authoritative until the matching program upgrade is finalized and `release.json` is updated.
 
 Use the public website docs for the complete explanation: https://basketlaunch.fun/docs
