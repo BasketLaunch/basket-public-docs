@@ -3,7 +3,7 @@ import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAd
 import bs58 from 'bs58';
 import { BorshCoder } from '@coral-xyz/anchor';
 import idl from './idl.js';
-import { BASKET_PROGRAM_ID, atomicBasketMint, basketAddresses, buildAtomicBasketActivation, buildBasketBuy, buildBasketSell, readBasketMarket } from './basket-client.js';
+import { BASKET_PROGRAM_ID, atomicBasketMint, basketAddresses, buildAtomicBasketActivation, buildBasketBuy, buildBasketSell, buildFinalizeMetadata, buildFinalizeMetadataForMint, readBasketMarket } from './basket-client.js';
 import { amount, BPS, buyQuote, ceilDiv, componentAmounts, completionComposite, fees, INITIAL_COMPOSITE, INITIAL_REAL_TOKEN, INITIAL_TOKEN, isGraduated, MAX_LAUNCH_COMPONENTS, MIN_INITIAL_BUY, sellQuote, validateComponents } from './protocol.js';
 import { BASKET_PROGRAM_BYTES, BASKET_PROGRAM_DATA_ADDRESS, BASKET_PROGRAM_SHA256, BASKET_UPGRADE_AUTHORITY, NETWORK_GENESIS } from './network.js';
 import { prepareBasketV1Transaction } from './transaction-v1.js';
@@ -54,7 +54,7 @@ export async function prepareBasketLaunch(input) {
     if (minTokens === 0n || minComponents.some(value => value === 0n))
         throw new Error('First buy is below token precision');
     const activation = buildAtomicBasketActivation({ buyer: input.buyer, mint, weights: components.map(component => component.weightBps), minComponents, grossSol: input.grossSol, minTokens, creatorShareBps: input.creatorShareBps, identity: input.identity, routes: route.legs.flatMap(leg => leg.accounts) });
-    const instructions = [...(route.setupInstructions ?? []), activation];
+    const instructions = [...(route.setupInstructions ?? []), activation, buildFinalizeMetadataForMint(mint, input.buyer)];
     if (instructions.some(instruction => instruction.keys.some(account => account.isSigner && !account.pubkey.equals(input.buyer))))
         throw new Error('Atomic launch cannot require another signer');
     const prepared = await prepareBasketV1Transaction(input.connection, input.buyer, instructions, route.slot);
@@ -127,7 +127,7 @@ export async function prepareBasketBuy(input) {
     const traderTokens = getAssociatedTokenAddressSync(input.mint, input.trader, false, state.tokenProgram);
     const routes = snapshot.legs.flatMap(leg => leg.accounts);
     const exists = await input.connection.getAccountInfo(traderTokens, { commitment: 'confirmed', minContextSlot: snapshot.slot });
-    const instructions = [...(exists ? [] : [createAssociatedTokenAccountIdempotentInstruction(input.trader, traderTokens, input.trader, input.mint, state.tokenProgram)]), buildBasketBuy({ state, trader: input.trader, traderTokens, routes, grossSol: quote.grossSol, composite: quote.composite, minTokens: quote.minTokens, componentBudgets: quote.componentBudgets })];
+    const instructions = [...(exists ? [] : [createAssociatedTokenAccountIdempotentInstruction(input.trader, traderTokens, input.trader, input.mint, state.tokenProgram)]), ...(state.metadataPending ? [buildFinalizeMetadata(state, input.trader)] : []), buildBasketBuy({ state, trader: input.trader, traderTokens, routes, grossSol: quote.grossSol, composite: quote.composite, minTokens: quote.minTokens, componentBudgets: quote.componentBudgets })];
     const prepared = state.tokenProgram.equals(TOKEN_2022_PROGRAM_ID) ? await prepareBasketV1Transaction(input.connection, input.trader, instructions, snapshot.slot) : null;
     return { state, quote, instructions, prepared, lookupAddresses: lookupAddresses(instructions), slot: snapshot.slot };
 }
@@ -138,7 +138,7 @@ export async function prepareBasketSell(input) {
     const quote = quoteBasketSell(snapshot, input.tokens, input.slippageBps);
     const traderTokens = getAssociatedTokenAddressSync(input.mint, input.trader, false, state.tokenProgram);
     const routes = snapshot.legs.flatMap(leg => leg.accounts);
-    const instructions = [buildBasketSell({ state, trader: input.trader, traderTokens, routes, tokens: quote.tokens, minNetSol: quote.minNetSol, componentMinimums: quote.componentMinimums })];
+    const instructions = [...(state.metadataPending ? [buildFinalizeMetadata(state, input.trader)] : []), buildBasketSell({ state, trader: input.trader, traderTokens, routes, tokens: quote.tokens, minNetSol: quote.minNetSol, componentMinimums: quote.componentMinimums })];
     const prepared = state.tokenProgram.equals(TOKEN_2022_PROGRAM_ID) ? await prepareBasketV1Transaction(input.connection, input.trader, instructions, snapshot.slot) : null;
     return { state, quote, instructions, prepared, lookupAddresses: lookupAddresses(instructions), slot: snapshot.slot };
 }

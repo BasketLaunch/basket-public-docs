@@ -185,6 +185,8 @@ export declare function buildBasketSell({ state, trader, traderTokens, routes, t
 }): TransactionInstruction;
 export declare function buildBasketClaim(state: BasketState, owner: PublicKey, kind: 'creator' | 'platform' | 'cashback'): TransactionInstruction;
 export declare function buildFinalizeMetadata(state: BasketState, cranker: PublicKey): TransactionInstruction;
+/** Append to an atomic launch so metadata and authority revocation share its signature. */
+export declare function buildFinalizeMetadataForMint(mint: PublicKey, cranker: PublicKey, metadataPayer?: PublicKey, tokenProgram?: PublicKey): TransactionInstruction;
 export declare function buildPrepareQuote(mint: PublicKey, payer: PublicKey): TransactionInstruction;
 export declare function readCashback(rpc: Pick<Connection, 'getGenesisHash' | 'getMultipleAccountsInfo'>, mint: PublicKey, owner: PublicKey): Promise<bigint>;
 export {};

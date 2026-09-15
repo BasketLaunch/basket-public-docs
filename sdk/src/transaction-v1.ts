@@ -41,8 +41,8 @@ export async function prepareBasketV1Transaction(connection:Pick<Connection,'rpc
   const latest=await connection.getLatestBlockhashAndContext({commitment:'confirmed',minContextSlot:Math.max(quoteSlot,feature.context.slot)});
   const prepared=compileBasketV1Transaction(payer,latest.value.blockhash,latest.value.lastValidBlockHeight,instructions.map(ix=>new TransactionInstruction({programId:ix.programId,keys:ix.keys.map(key=>({...key})),data:Buffer.from(ix.data)})));
   const response=await fetch(connection.rpcEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'simulateTransaction',params:[Buffer.from(prepared.wireTransaction).toString('base64'),{encoding:'base64',commitment:'confirmed',minContextSlot:latest.context.slot,sigVerify:false,replaceRecentBlockhash:false}]}),signal:AbortSignal.timeout(15_000)});
-  if(!response.ok)throw new Error('Transaction-v1 simulation service is unavailable');
-  const payload=await response.json() as {error?:{message?:string};result?:{context?:{slot?:number};value?:{err?:unknown;unitsConsumed?:number}}};
+  const payload=await response.json().catch(()=>({})) as {error?:{message?:string};result?:{context?:{slot?:number};value?:{err?:unknown;unitsConsumed?:number}}};
+  if(!response.ok)throw new Error(payload.error?.message||'Transaction-v1 simulation service is unavailable');
   const slot=payload.result?.context?.slot,units=payload.result?.value?.unitsConsumed;
   if(payload.error||!Number.isSafeInteger(slot)||slot!<latest.context.slot||payload.result?.value?.err!=null)throw new Error(`Transaction-v1 simulation failed: ${JSON.stringify(payload.error||payload.result?.value?.err)}.`);
   if(!Number.isSafeInteger(units)||units!<=0||units!>1_400_000)throw new Error('Transaction compute usage could not be verified');

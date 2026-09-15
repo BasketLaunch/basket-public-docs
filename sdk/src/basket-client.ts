@@ -208,9 +208,14 @@ export function buildBasketClaim(state: BasketState, owner: PublicKey, kind: 'cr
 }
 
 export function buildFinalizeMetadata(state:BasketState,cranker:PublicKey){
- const a=basketAddresses(state.mint,cranker),metadataProgram=new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
- const metadata=PublicKey.findProgramAddressSync([Buffer.from('metadata'),metadataProgram.toBuffer(),state.mint.toBuffer()],metadataProgram)[0];
- return instruction('finalize_metadata',{cranker,market:a.market,router:a.router,mint:state.mint,metadata_payer:state.metadataPayer,metadata,metadata_program:metadataProgram,token_program:state.tokenProgram,instructions:SYSVAR_INSTRUCTIONS_PUBKEY,system_program:SystemProgram.programId},{});
+ return buildFinalizeMetadataForMint(state.mint,cranker,state.metadataPayer,state.tokenProgram);
+}
+
+/** Append to an atomic launch so metadata and authority revocation share its signature. */
+export function buildFinalizeMetadataForMint(mint:PublicKey,cranker:PublicKey,metadataPayer=cranker,tokenProgram=TOKEN_2022_PROGRAM_ID){
+ const a=basketAddresses(mint,cranker),metadataProgram=new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+ const metadata=PublicKey.findProgramAddressSync([Buffer.from('metadata'),metadataProgram.toBuffer(),mint.toBuffer()],metadataProgram)[0];
+ return instruction('finalize_metadata',{cranker,market:a.market,router:a.router,mint,metadata_payer:metadataPayer,metadata,metadata_program:metadataProgram,token_program:tokenProgram,instructions:SYSVAR_INSTRUCTIONS_PUBKEY,system_program:SystemProgram.programId},{});
 }
 
 export function buildPrepareQuote(mint: PublicKey, payer: PublicKey) {

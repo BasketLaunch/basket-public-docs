@@ -1,6 +1,6 @@
 # @basketlaunch/sdk
 
-Official TypeScript integration SDK for the BASKET program on Solana. This branch is the Token-2022 + transaction-v1 candidate; keep the published mainnet release pinned until its matching program upgrade and release manifest are finalized.
+Official TypeScript integration SDK for the active BASKET program on Solana mainnet.
 
 The SDK verifies canonical program state and reserve accounts, preserves integer precision, quotes the BASKET curve and fee split, builds creation/buy/sell/claim instructions, discovers markets, and compiles and simulates one user-signed transaction-v1 message for new Token-2022 markets. Trading platforms provide a venue adapter for their existing Pump.fun, PumpSwap, Raydium CPMM/CLMM or LaunchLab routing code. The BASKET program validates the complete route again on chain and always enforces its configured fee destination.
 
@@ -61,7 +61,8 @@ const launch = await prepareBasketLaunch({
 
 // Display launch.fee, rent and network cost, then pass
 // launch.prepared.wireTransaction to a Wallet Standard signer that supports v1.
-// No lookup table or platform payer exists.
+// Metadata publication and authority revocation are included in the same
+// creator-paid transaction. No lookup table or platform payer exists.
 ```
 
 The complete message is simulated before it is returned. Four Pump, six LaunchLab and seven homogeneous Raydium CPMM constituents are the currently verified venue maxima. Mixed and CLMM routes can cap earlier, so the exact simulation result is authoritative.

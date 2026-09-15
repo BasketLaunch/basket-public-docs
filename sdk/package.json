@@ -1,6 +1,6 @@
 {
   "name": "@basketlaunch/sdk",
-  "version": "0.2.0-rc.1",
+  "version": "0.2.0",
   "description": "Official mainnet integration SDK for BASKET Solana basket tokens",
   "type": "module",
   "main": "./dist/index.js",
