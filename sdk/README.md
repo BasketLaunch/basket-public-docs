@@ -11,7 +11,7 @@ The SDK verifies canonical program state and reserve accounts, preserves integer
 The SDK contains no platform signing key and cannot debit BASKET infrastructure wallets. The creator or trader pays all account rent and network fees. Transaction v1 uses inline addresses and no lookup tables; a route requiring advance preparation is rejected so every accepted action opens exactly one wallet approval.
 
 ```bash
-npm install @basketlaunch/sdk @solana/web3.js
+npm install https://github.com/BasketLaunch/basket-public-docs/releases/download/v0.3.1-metadata-delivery/basketlaunch-sdk-0.2.2.tgz @solana/web3.js
 ```
 
 ## Pin the deployed release
