@@ -47,7 +47,19 @@ Install the official package with `npm install @basketlaunch/sdk`. Call `verifyD
 
 Use `activate_atomic` for the standard launch. Derive the mint from `basket_mint`, the buyer public key and the immutable metadata JSON hash; derive the buyer token account as the canonical associated token account. The program creates both, leaving the buyer as the only signer of the final launch transaction. Enforce the on-chain minimum first buy of 0.10 SOL and preserve the exact identity hash, weights, creator/cashback split and slippage constraints. The older `activate_and_buy` and `activate_from_manifest` paths remain available for compatible integrations. Publish durable metadata before submission. Call `prepareBasketLaunch` with your own `BasketLaunchRouteAdapter`. Your interface may host its own metadata and IPFS content. The helper builds and simulates the full creator-paid v1 message and rejects combinations needing advance preparation. Activation creates every financial account, acquires every constituent, mints the fixed 1 billion inventory once and transfers the first buyer's tokens atomically. The SDK cap is six; four Pump and up to six homogeneous CPMM constituents are the currently verified maxima, while mixed and CLMM routes can cap earlier.
 
-After activation, any caller can submit `finalize_metadata`. The creator-funded router reserve pays Metaplex rent and the crank fee, then returns excess to the recorded metadata payer. This is an automatic follow-up transaction with no creator signature and no basket-asset movement. Reconcile uncertain activation and finalization signatures before retrying. A successful on-chain launch does not automatically grant access to private website APIs or catalog inclusion.
+The standard launch transaction appends `finalize_metadata` after activation. The creator-funded router reserve pays Metaplex rent and the crank fee, returns excess to the recorded metadata payer, publishes immutable identity and revokes mint authority before the transaction can succeed. Reconcile an uncertain launch signature before retrying. A successful on-chain launch does not automatically grant access to private website APIs or catalog inclusion.
+
+### Verified mainnet example
+
+The Big Three is a complete three-constituent reference launch:
+
+- Mint: [`463Vy9G6oNaN7yVh4hyzo26Pm1ABcmhn5EMUPyFAoo9c`](https://solscan.io/token/463Vy9G6oNaN7yVh4hyzo26Pm1ABcmhn5EMUPyFAoo9c)
+- Transaction: [`3VQ7x…du8rz`](https://solscan.io/tx/3VQ7xJcZKeedsH8XRHnKAG3q6x688Fw6cn3h6gNm1QiPQK3up8xhR4aNNWk42tdHFrKqq7wkF43D5NDXqBcdu8rz)
+- Constituents: POPCAT `3334` bps, WIF `3333` bps and BONK `3333` bps
+- First buy: `100000000` lamports gross; `700000` platform, `180000` creator and `120000` cashback lamports
+- Result: fixed 1 billion supply at six decimals, `3529253463570` base units issued, three canonical reserve vaults funded, immutable Metaplex metadata present, mint/freeze authorities absent
+
+Use this transaction to validate event parsing, account ordering, reserve discovery and fee accounting against the IDL and SDK.
 
 ## Fees and claims
 

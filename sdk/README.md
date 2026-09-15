@@ -11,7 +11,7 @@ The SDK verifies canonical program state and reserve accounts, preserves integer
 The SDK contains no platform signing key and cannot debit BASKET infrastructure wallets. The creator or trader pays all account rent and network fees. Transaction v1 uses inline addresses and no lookup tables; a route requiring advance preparation is rejected so every accepted action opens exactly one wallet approval.
 
 ```bash
-npm install https://github.com/BasketLaunch/basket-public-docs/releases/download/v0.3.2-compact-metadata/basketlaunch-sdk-0.2.3.tgz @solana/web3.js
+npm install @basketlaunch/sdk@0.2.4 @solana/web3.js
 ```
 
 ## Pin the deployed release
@@ -131,6 +131,7 @@ Program: `149WKoc5878Sx5EWjHGhPBL4vsoogY9og7ffkzdu39LM`
 
 - Full integration guide: https://basketlaunch.fun/docs
 - Release manifest and IDL: https://github.com/BasketLaunch/basket-public-docs
+- Verified mainnet transaction: https://solscan.io/tx/3VQ7xJcZKeedsH8XRHnKAG3q6x688Fw6cn3h6gNm1QiPQK3up8xhR4aNNWk42tdHFrKqq7wkF43D5NDXqBcdu8rz
 - Compatibility review: https://x.com/BasketLaunch
 
 This SDK is GPL-3.0 because supported venue integration relies on GPL-licensed Raydium interfaces. It does not publish the private BASKET Rust implementation. Deployed Solana bytecode is public and upgradeable. No independent audit has been published.

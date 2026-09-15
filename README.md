@@ -4,7 +4,7 @@ Official integration interface for BASKET on Solana.
 
 > This repository describes the active Token-2022 + transaction-v1 mainnet release. It supports up to six underlying coins when the exact complete route passes simulation. Pin `release.json` and verify the deployed bytecode before enabling an integration.
 
-**The currently published single-wallet mainnet release is deployed and buys are enabled. Its standard `activate_atomic` path creates the deterministic mint and buyer token account inside one user-signed financial transaction. Basket tokens use a fixed 1 billion supply and the creator/trader pays disclosed rent. Always read the current on-chain pause flag before submitting a buy. The first customer-driven mainnet lifecycle test is pending; deployment is not an independent audit. Upgrade authority is retained on the owner’s Ledger.**
+**The currently published single-wallet mainnet release is deployed and buys are enabled. Its standard `activate_atomic` path creates the deterministic mint and buyer token account, acquires every constituent, publishes immutable Metaplex metadata and revokes mint authority inside one user-signed financial transaction. Basket tokens use a fixed 1 billion supply and the creator/trader pays disclosed rent. Always read the current on-chain pause flag before submitting a buy. A finalized customer-driven mainnet launch is linked below; deployment is not an independent audit. Upgrade authority is retained on the owner’s Ledger.**
 
 - [Website documentation](https://basketlaunch.fun/docs)
 - [Anchor IDL](idl/basket.json)
@@ -13,6 +13,7 @@ Official integration interface for BASKET on Solana.
 - [Trading-platform integration guide](docs/TRADING-PLATFORMS.md)
 - [Official TypeScript SDK](sdk/README.md) — `npm install @basketlaunch/sdk`
 - [Release manifest](release.json)
+- [Verified mainnet example: The Big Three](https://solscan.io/tx/3VQ7xJcZKeedsH8XRHnKAG3q6x688Fw6cn3h6gNm1QiPQK3up8xhR4aNNWk42tdHFrKqq7wkF43D5NDXqBcdu8rz)
 - [Read-only deployment verifier](scripts/verify-deployment.py) — run `python3 scripts/verify-deployment.py`; compares finalized on-chain bytecode against the published release.
 
 This repository publishes interfaces and documentation, not the private Rust program implementation. Release hashes allow comparison against deployed bytes once deployment occurs. This is not a reproducible source build or an independent audit. On-chain bytecode remains public and cannot be made impossible to reverse engineer. Repository documentation is MIT-licensed; the SDK has its own GPL-3.0 license in `sdk/LICENSE`.

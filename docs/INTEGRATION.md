@@ -14,7 +14,7 @@ The integrating site may pin the image and metadata JSON with its own IPFS or st
 
 Call `prepareBasketLaunch` with the creator public key, immutable identity, one to six constituents and your venue adapter. It builds and simulates the complete transaction-v1 message. Missing canonical accounts are created inside that transaction and paid by the creator. Transaction v1 uses inline addresses and no address lookup tables. A combination that exceeds the byte, account, compute or instruction-trace limit is rejected before the wallet opens, so an abandoned launch spends no platform or creator SOL. The SDK has no platform signer or funded relay.
 
-Metaplex metadata is finalized after the financial transaction by permissionless `finalize_metadata`. Activation stores the immutable identity and reserves its rent in the router, so this step needs no second creator signature. Do not list a new market until its finalized state, mint authority, supply, reserve vaults and metadata all verify.
+The standard SDK appends `finalize_metadata` to that same atomic transaction. It publishes immutable Metaplex metadata, revokes mint authority, returns unused metadata reserve to the payer and requires no second creator approval. Do not list a new market until its finalized state, absent mint/freeze authorities, fixed supply, reserve vaults and metadata all verify.
 
 ## Trade
 
@@ -36,7 +36,7 @@ The final launch purchase switches to the BASKET permanent pool, preserving the 
 
 ## Release checks
 
-Check genesis hash, program executable status and ProgramData owner, configured authority/treasury, release hash and pause state. Mainnet chain is `solana:mainnet`; devnet authorization is not reusable. Enable the SDK only when the deployed bytecode matches `release.json`. The active binary was byte-verified after its mainnet deployment, and a finalized five-component v1 launch verified all five reserves, fixed supply and fee liabilities. No independent audit is published.
+Check genesis hash, program executable status and ProgramData owner, configured authority/treasury, release hash and pause state. Mainnet chain is `solana:mainnet`; devnet authorization is not reusable. Enable the SDK only when the deployed bytecode matches `release.json`. The active binary was byte-verified after its mainnet deployment. The finalized [The Big Three launch](https://solscan.io/tx/3VQ7xJcZKeedsH8XRHnKAG3q6x688Fw6cn3h6gNm1QiPQK3up8xhR4aNNWk42tdHFrKqq7wkF43D5NDXqBcdu8rz) created mint `463Vy9G6oNaN7yVh4hyzo26Pm1ABcmhn5EMUPyFAoo9c`, acquired POPCAT/WIF/BONK, published immutable metadata, revoked mint/freeze authority, issued the first basket tokens and recorded the exact 0.70% platform plus 0.30% creator/cashback fee allocation in one transaction. No independent audit is published.
 
 Index finalized events using the exact IDL. Deduplicate by signature and event index, and subtract actual refunds from reported volume. Do not imply that unrelated external pools enforce BASKET fees.
 
