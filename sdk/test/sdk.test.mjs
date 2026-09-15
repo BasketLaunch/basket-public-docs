@@ -25,7 +25,7 @@ test('protocol fee routing preserves every lamport', () => {
 
 test('the SDK rejects an eight-component launch before reading a route', async () => {
   assert.equal(MAX_COMPONENTS, 8);
-  assert.equal(MAX_LAUNCH_COMPONENTS, 7);
+  assert.equal(MAX_LAUNCH_COMPONENTS, 6);
   let routed = false;
   const components = Array.from({ length: 8 }, (_, index) => ({
     mint: new PublicKey(Uint8Array.from({ length: 32 }, () => index + 1)).toBase58(),
@@ -36,6 +36,6 @@ test('the SDK rejects an eight-component launch before reading a route', async (
     identity: { name: 'Capacity check', symbol: 'CAP', uri: `https://arweave.net/${'a'.repeat(43)}`, jsonSha256: Array(32).fill(7) },
     components, grossSol: 100_000_000n, creatorShareBps: 5_000,
     routeAdapter: async () => { routed = true; throw new Error('unreachable'); },
-  }), /at most 7 constituents/);
+  }), /at most 6 constituents/);
   assert.equal(routed, false);
 });

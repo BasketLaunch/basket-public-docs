@@ -1,6 +1,6 @@
 /** Reference economics. All token amounts are atomic units; all SOL amounts are lamports. */
 export const MAX_COMPONENTS = 8;
-export const MAX_LAUNCH_COMPONENTS = 7;
+export const MAX_LAUNCH_COMPONENTS = 6;
 export const BPS = 10000n;
 export const SCALE = 1000000000n;
 export const TOKEN_SCALE = 1000000n;

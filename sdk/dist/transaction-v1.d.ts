@@ -2,6 +2,7 @@ import { PublicKey, TransactionInstruction, type Connection } from '@solana/web3
 export declare const V1_TRANSACTION_BYTE_LIMIT = 4096;
 export declare const V1_TRANSACTION_ACCOUNT_LIMIT = 64;
 export declare const V1_INSTRUCTION_TRACE_LIMIT = 64;
+export declare const PRIORITY_FEE_LAMPORTS = 25000n;
 export declare const TX_V1_FEATURE: PublicKey;
 /** Compile the exact single-signature v1 message. Transaction v1 never uses lookup tables. */
 export declare function compileBasketV1Transaction(payer: PublicKey, recentBlockhash: string, lastValidBlockHeight: number, instructions: TransactionInstruction[]): {

@@ -12,6 +12,7 @@ import {NETWORK_GENESIS} from './network.js';
 export const V1_TRANSACTION_BYTE_LIMIT=4096;
 export const V1_TRANSACTION_ACCOUNT_LIMIT=64;
 export const V1_INSTRUCTION_TRACE_LIMIT=64;
+export const PRIORITY_FEE_LAMPORTS=25_000n;
 export const TX_V1_FEATURE=new PublicKey('txv1aq4pp281K9um3tnPgkfX8UqtFT6wcVW3hNezGLL');
 
 function toKitInstruction(ix:TransactionInstruction):Instruction{
@@ -25,7 +26,7 @@ export function compileBasketV1Transaction(payer:PublicKey,recentBlockhash:strin
   if(!Number.isSafeInteger(lastValidBlockHeight)||lastValidBlockHeight<1)throw new Error('Invalid transaction expiry');
   const accounts=new Set([payer.toBase58(),...instructions.flatMap(ix=>[ix.programId.toBase58(),...ix.keys.map(key=>key.pubkey.toBase58())])]);
   if(accounts.size>V1_TRANSACTION_ACCOUNT_LIMIT)throw new Error(`This transaction needs ${accounts.size} accounts; transaction v1 allows ${V1_TRANSACTION_ACCOUNT_LIMIT}.`);
-  const message=pipe(createTransactionMessage({version:1}),value=>setTransactionMessageFeePayer(address(payer.toBase58()),value),value=>setTransactionMessageLifetimeUsingBlockhash({blockhash:kitBlockhash(recentBlockhash),lastValidBlockHeight:BigInt(lastValidBlockHeight)},value),value=>appendTransactionMessageInstructions(instructions.map(toKitInstruction),value),value=>setTransactionMessageConfig({computeUnitLimit:1_400_000,loadedAccountsDataSizeLimit:64*1024*1024,priorityFeeLamports:0n},value));
+  const message=pipe(createTransactionMessage({version:1}),value=>setTransactionMessageFeePayer(address(payer.toBase58()),value),value=>setTransactionMessageLifetimeUsingBlockhash({blockhash:kitBlockhash(recentBlockhash),lastValidBlockHeight:BigInt(lastValidBlockHeight)},value),value=>appendTransactionMessageInstructions(instructions.map(toKitInstruction),value),value=>setTransactionMessageConfig({computeUnitLimit:1_400_000,loadedAccountsDataSizeLimit:64*1024*1024,priorityFeeLamports:PRIORITY_FEE_LAMPORTS},value));
   const transaction=compileKitTransaction(message),wireTransaction=Uint8Array.from(getTransactionEncoder().encode(transaction));
   if(wireTransaction[0]!==0x81)throw new Error('Invalid transaction v1 encoding');
   if(wireTransaction.length>V1_TRANSACTION_BYTE_LIMIT)throw new Error(`This transaction is ${wireTransaction.length} bytes; transaction v1 allows ${V1_TRANSACTION_BYTE_LIMIT}.`);
@@ -44,7 +45,7 @@ export async function prepareBasketV1Transaction(connection:Pick<Connection,'rpc
   const payload=await response.json().catch(()=>({})) as {error?:{message?:string};result?:{context?:{slot?:number};value?:{err?:unknown;unitsConsumed?:number}}};
   if(!response.ok)throw new Error(payload.error?.message||'Transaction-v1 simulation service is unavailable');
   const slot=payload.result?.context?.slot,units=payload.result?.value?.unitsConsumed;
-  if(payload.error||!Number.isSafeInteger(slot)||slot!<latest.context.slot||payload.result?.value?.err!=null)throw new Error(`Transaction-v1 simulation failed: ${JSON.stringify(payload.error||payload.result?.value?.err)}.`);
+  if(payload.error||!Number.isSafeInteger(slot)||slot!<latest.context.slot||payload.result?.value?.err!=null){const detail=JSON.stringify(payload.error||payload.result?.value?.err);if(detail.includes('MaxInstructionTraceLengthExceeded'))throw new Error('This route invokes too many venue instructions for one atomic transaction. Replace a complex PumpSwap, CLMM, or LaunchLab coin, or use fewer coins. Nothing was submitted.');throw new Error(`Transaction-v1 simulation failed: ${detail}.`);}
   if(!Number.isSafeInteger(units)||units!<=0||units!>1_400_000)throw new Error('Transaction compute usage could not be verified');
   return{...prepared,blockhash:latest.value.blockhash,lastValidBlockHeight:latest.value.lastValidBlockHeight,minContextSlot:slot!,computeUnits:units!};
 }

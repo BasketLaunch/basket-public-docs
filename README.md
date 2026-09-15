@@ -2,7 +2,7 @@
 
 Official integration interface for BASKET on Solana.
 
-> This branch is the validated Token-2022 + transaction-v1 candidate. It supports up to seven underlying coins when the exact complete route passes simulation. The `main` branch and `release.json` remain the authoritative deployed mainnet release until the matching program upgrade is finalized.
+> This repository describes the active Token-2022 + transaction-v1 mainnet release. It supports up to six underlying coins when the exact complete route passes simulation. Pin `release.json` and verify the deployed bytecode before enabling an integration.
 
 **The currently published single-wallet mainnet release is deployed and buys are enabled. Its standard `activate_atomic` path creates the deterministic mint and buyer token account inside one user-signed financial transaction. Basket tokens use a fixed 1 billion supply and the creator/trader pays disclosed rent. Always read the current on-chain pause flag before submitting a buy. The first customer-driven mainnet lifecycle test is pending; deployment is not an independent audit. Upgrade authority is retained on the owner’s Ledger.**
 

@@ -53,7 +53,7 @@ const launch = await prepareBasketLaunch({
   connection,
   buyer: trader,
   identity: { name, symbol, uri: metadataUri, jsonSha256: [...metadataDigest] },
-  components, // one to seven ordered { mint, weightBps } entries
+  components, // one to six ordered { mint, weightBps } entries
   grossSol: 100_000_000n,
   creatorShareBps: 5_000,
   routeAdapter: terminalLaunchRoutes,
@@ -65,7 +65,7 @@ const launch = await prepareBasketLaunch({
 // creator-paid transaction. No lookup table or platform payer exists.
 ```
 
-The complete message is simulated before it is returned. Four Pump, six LaunchLab and seven homogeneous Raydium CPMM constituents are the currently verified venue maxima. Mixed and CLMM routes can cap earlier, so the exact simulation result is authoritative.
+The complete message is simulated before it is returned. Four Pump constituents and up to six simple Raydium CPMM or LaunchLab constituents are the currently verified venue maxima. Mixed PumpSwap, CLMM and LaunchLab routes can cap earlier, so the exact simulation result is authoritative. The v1 message includes a 25,000-lamport priority fee paid by the transaction payer.
 
 ## Prepare an atomic buy
 
@@ -117,7 +117,7 @@ type VenueLeg = {
 
 All reads must come from a nondecreasing confirmed slot. Each leg must include the canonical BASKET router, constituent mint and reserve vault, use no external signer, and follow the deployed adapter account order. The SDK checks the shared invariants; the on-chain program authenticates every venue-specific account and rejects a changed or malformed route atomically.
 
-The SDK accepts at most seven launch constituents in this release and exact-simulates the complete message. The program state reserves eight slots for forward compatibility and independently validates 1–8 entries, canonical extension state, component order, weights, receipt deltas and fee routing. A caller that bypasses the SDK still cannot create partial state or spend platform SOL; an invalid transaction rolls back atomically and can consume only its payer's network fee.
+The SDK accepts at most six launch constituents in this release and exact-simulates the complete message. The program state reserves eight slots for forward compatibility and independently validates 1–8 entries, canonical extension state, component order, weights, receipt deltas and fee routing. A caller that bypasses the SDK still cannot create partial state or spend platform SOL; an invalid transaction rolls back atomically and can consume only its payer's network fee.
 
 ## Discovery and indexing
 
