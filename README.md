@@ -1,8 +1,10 @@
 # BASKET public protocol documentation
 
-Official integration interface for BASKET, a Solana basket launchpad with up to four underlying coins.
+Official integration interface for BASKET on Solana.
 
-**The single-wallet mainnet release is deployed and buys are enabled. Its standard `activate_atomic` path creates the deterministic mint and buyer token account inside one user-signed financial transaction. Basket tokens use a fixed 1 billion supply and the creator/trader pays disclosed rent. Always read the current on-chain pause flag before submitting a buy. The first customer-driven mainnet lifecycle test is pending; deployment is not an independent audit. Upgrade authority is retained on the owner’s Ledger.**
+> This branch is the validated Token-2022 + transaction-v1 candidate. It supports up to seven underlying coins when the exact complete route passes simulation. The `main` branch and `release.json` remain the authoritative deployed mainnet release until the matching program upgrade is finalized.
+
+**The currently published single-wallet mainnet release is deployed and buys are enabled. Its standard `activate_atomic` path creates the deterministic mint and buyer token account inside one user-signed financial transaction. Basket tokens use a fixed 1 billion supply and the creator/trader pays disclosed rent. Always read the current on-chain pause flag before submitting a buy. The first customer-driven mainnet lifecycle test is pending; deployment is not an independent audit. Upgrade authority is retained on the owner’s Ledger.**
 
 - [Website documentation](https://basketlaunch.fun/docs)
 - [Anchor IDL](idl/basket.json)

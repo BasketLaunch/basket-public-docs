@@ -1,5 +1,6 @@
 /** Reference economics. All token amounts are atomic units; all SOL amounts are lamports. */
-export const MAX_COMPONENTS = 4;
+export const MAX_COMPONENTS = 8;
+export const MAX_LAUNCH_COMPONENTS = 7;
 export const BPS = 10_000n;
 export const SCALE = 1_000_000_000n;
 export const TOKEN_SCALE = 1_000_000n;
@@ -33,7 +34,7 @@ export function fees(gross: bigint, creatorShareBps: number) {
 
 export type Component = { mint: string; weightBps: number };
 export function validateComponents(components: Component[]) {
-  if (components.length < 1 || components.length > MAX_COMPONENTS) throw new Error('Choose 1–4 constituents');
+  if (components.length < 1 || components.length > MAX_COMPONENTS) throw new Error('Choose 1–8 constituents');
   if (new Set(components.map(c => c.mint)).size !== components.length) throw new Error('Duplicate constituent');
   if (components.some(c => !c.mint || !Number.isInteger(c.weightBps) || c.weightBps <= 0 || c.weightBps > 10_000)) throw new Error('Invalid constituent weight');
   if (components.reduce((sum, c) => sum + c.weightBps, 0) !== 10_000) throw new Error('Weights must total 100%');

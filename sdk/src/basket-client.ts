@@ -2,7 +2,7 @@ import { metadataUri } from './metadata-uri.js';
 import { Buffer } from 'buffer';
 import { BorshCoder, type Idl } from '@coral-xyz/anchor';
 import BN from 'bn.js';
-import { PublicKey, SystemProgram, TransactionInstruction, type AccountInfo, type AccountMeta, type Connection } from '@solana/web3.js';
+import { PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram, TransactionInstruction, type AccountInfo, type AccountMeta, type Connection } from '@solana/web3.js';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID, NATIVE_MINT, getAssociatedTokenAddressSync, unpackAccount, unpackMint } from '@solana/spl-token';
 import idl from './idl.js';
 import { amount, buyQuote, componentAmounts, fees, INITIAL_REAL_TOKEN, INITIAL_TOKEN, INITIAL_COMPOSITE, isGraduated, MAX_COMPONENTS, sellQuote, SUPPLY, validateComponents } from './protocol.js';
@@ -14,14 +14,30 @@ const pda = (...seeds: (string | PublicKey)[]) => PublicKey.findProgramAddressSy
 export function basketAddresses(mint: PublicKey, trader: PublicKey) {
   return { config: pda('config')[0], market: pda('market', mint)[0], router: pda('router', mint)[0], supplyVault: pda('supply', mint)[0], cashback: pda('cashback', mint, trader)[0] };
 }
+export function basketReserveAddress(router:PublicKey,mint:PublicKey){return pda('reserve',router,mint)[0];}
+export const BASKET_COMPONENTS_ACCOUNT_SIZE = 337;
+export function basketComponentsAddress(mint:PublicKey){return pda('components',mint)[0];}
 export function atomicBasketMint(creator: string | PublicKey, metadataHash: string | Uint8Array) {
   const hash = typeof metadataHash === 'string' ? Buffer.from(metadataHash, 'hex') : Buffer.from(metadataHash);
   if (hash.length !== 32 || hash.every(byte => byte === 0)) throw new Error('Invalid basket metadata hash');
   return pda('mint', new PublicKey(creator), new PublicKey(hash))[0];
 }
 
+function decodeBasketComponents(mint:PublicKey,account?:AccountInfo<Buffer>|null){
+  if(!account||!account.owner.equals(BASKET_PROGRAM_ID)||account.executable||account.data.length!==BASKET_COMPONENTS_ACCOUNT_SIZE)throw new Error('Basket component extension is unavailable');
+  if(!account.data.subarray(0,8).equals(Buffer.from([243,81,174,170,16,232,122,155])))throw new Error('Invalid basket component extension');
+  let offset=8;
+  const readKey=()=>{const value=new PublicKey(account.data.subarray(offset,offset+32));offset+=32;return value;};
+  const market=readKey(),mints=Array.from({length:4},readKey),vaults=Array.from({length:4},readKey);
+  const weights=Array.from({length:4},()=>{const value=account.data.readUInt16LE(offset);offset+=2;return value;});
+  const recipe=Array.from({length:4},()=>{const value=account.data.readBigUInt64LE(offset);offset+=8;return amount(value);});
+  const bump=account.data[offset],[extensionAddress,expectedBump]=pda('components',mint);
+  if(bump!==expectedBump||!market.equals(basketAddresses(mint,mint).market))throw new Error('Noncanonical basket component extension');
+  return{address:extensionAddress,mints,vaults,weights,recipe};
+}
+
 /** Decode only the pinned program's canonical market, preserving integer precision. */
-export function decodeBasketMarket(address: PublicKey, account: AccountInfo<Buffer>) {
+export function decodeBasketMarket(address: PublicKey, account: AccountInfo<Buffer>, tokenProgram = TOKEN_PROGRAM_ID, componentAccount?:AccountInfo<Buffer>|null) {
   if (!account.owner.equals(BASKET_PROGRAM_ID) || account.executable) throw new Error('Invalid basket market owner');
   const state = coder.accounts.decode('BasketMarket', account.data);
   const mint = new PublicKey(state.mint);
@@ -29,7 +45,13 @@ export function decodeBasketMarket(address: PublicKey, account: AccountInfo<Buff
   if (!address.equals(canonical) || state.bump !== bump || state.router_bump !== routerBump) throw new Error('Noncanonical basket market');
   const count = state.component_count as number;
   if (!Number.isInteger(count) || count < 1 || count > MAX_COMPONENTS) throw new Error('Unsupported basket composition');
-  const components = Array.from({ length: count }, (_, i) => ({ mint: new PublicKey(state.mints[i]), weightBps: state.weights[i] as number, vault: new PublicKey(state.vaults[i]), recipe: amount(BigInt(state.recipe[i].toString())) }));
+  const baseCount=Math.min(count,4);
+  const components = Array.from({ length: baseCount }, (_, i) => ({ mint: new PublicKey(state.mints[i]), weightBps: state.weights[i] as number, vault: new PublicKey(state.vaults[i]), recipe: amount(BigInt(state.recipe[i].toString())) }));
+  if(count>4){
+    const extension=decodeBasketComponents(mint,componentAccount),extraCount=count-4;
+    for(let i=0;i<extraCount;i++)components.push({mint:extension.mints[i],weightBps:extension.weights[i],vault:extension.vaults[i],recipe:extension.recipe[i]});
+    for(let i=extraCount;i<4;i++)if(!extension.mints[i].equals(PublicKey.default)||!extension.vaults[i].equals(PublicKey.default)||extension.weights[i]!==0||extension.recipe[i]!==0n)throw new Error('Unexpected unused basket component data');
+  }
   validateComponents(components.map(c => ({ mint: c.mint.toBase58(), weightBps: c.weightBps })));
   const economics = {
     virtualToken: amount(BigInt(state.virtual_token.toString())), virtualComposite: amount(BigInt(state.virtual_composite.toString())),
@@ -45,7 +67,8 @@ export function decodeBasketMarket(address: PublicKey, account: AccountInfo<Buff
     : economics.realToken <= INITIAL_REAL_TOKEN && economics.virtualToken - economics.realToken === INITIAL_TOKEN - INITIAL_REAL_TOKEN && economics.virtualComposite - economics.realComposite === INITIAL_COMPOSITE;
   if (!validReserves || economics.virtualToken === 0n || economics.virtualComposite === 0n || economics.recipeNotional === 0n || components.some(c => c.recipe === 0n)) throw new Error('Invalid basket curve state');
   fees(0n, economics.creatorShareBps);
-  return { address, mint, creator: new PublicKey(state.creator), treasury: new PublicKey(state.treasury), components, economics, graduated,
+  if (![TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID].some(program => program.equals(tokenProgram))) throw new Error('Unsupported basket token program');
+  return { address, mint, tokenProgram, creator: new PublicKey(state.creator), treasury: new PublicKey(state.treasury), components, economics, graduated,
     metadataHash: Buffer.from(state.metadata_hash).toString('hex'),
     metadataPending: BigInt(state.metadata_reserve.toString()) > 0n, metadataPayer:new PublicKey(state.metadata_payer),
     initialCashbackOwner:new PublicKey(state.initial_cashback_owner), initialCashback:amount(BigInt(state.initial_cashback.toString())), issuedTokens:amount(BigInt(state.issued_tokens.toString())),
@@ -56,11 +79,12 @@ export function decodeBasketMarket(address: PublicKey, account: AccountInfo<Buff
 export type BasketState = ReturnType<typeof decodeBasketMarket>;
 
 function verifyBasketSupply(state: BasketState, mintAccount: AccountInfo<Buffer>, supplyAddress: PublicKey, supplyAccount: AccountInfo<Buffer>) {
-  const token = unpackMint(state.mint, mintAccount, TOKEN_PROGRAM_ID);
+  if (!mintAccount.owner.equals(state.tokenProgram)) throw new Error('Basket mint token program changed');
+  const token = unpackMint(state.mint, mintAccount, state.tokenProgram);
   const expectedAuthority = state.metadataPending ? state.address : null;
   if (!token.isInitialized || token.supply !== SUPPLY || token.decimals !== 6 || token.freezeAuthority || (expectedAuthority ? !token.mintAuthority?.equals(expectedAuthority) : token.mintAuthority !== null)) throw new Error('Basket token supply or authority does not match the protocol');
-  if (!supplyAddress.equals(basketAddresses(state.mint, state.mint).supplyVault) || !supplyAccount.owner.equals(TOKEN_PROGRAM_ID)) throw new Error('Invalid basket supply vault');
-  const supply = unpackAccount(supplyAddress, supplyAccount, TOKEN_PROGRAM_ID);
+  if (!supplyAddress.equals(basketAddresses(state.mint, state.mint).supplyVault) || !supplyAccount.owner.equals(state.tokenProgram)) throw new Error('Invalid basket supply vault');
+  const supply = unpackAccount(supplyAddress, supplyAccount, state.tokenProgram);
   if (!supply.isInitialized || !supply.mint.equals(state.mint) || !supply.owner.equals(state.address) || supply.delegate || supply.closeAuthority || supply.isNative || supply.amount + state.issuedTokens !== SUPPLY) throw new Error('Basket circulating supply does not match its fixed inventory');
   return supply.amount;
 }
@@ -69,10 +93,10 @@ export async function readBasketMarket(rpc: Pick<Connection, 'getGenesisHash' | 
   if (!Number.isSafeInteger(minContextSlot) || minContextSlot < 0) throw new Error('Invalid market slot');
   if (await rpc.getGenesisHash() !== NETWORK_GENESIS) throw new Error('RPC network does not match this BASKET build');
   const addresses = basketAddresses(mint, mint);
-  const result = await rpc.getMultipleAccountsInfoAndContext([addresses.market, mint, addresses.config, addresses.supplyVault], { commitment: 'confirmed', minContextSlot });
-  const [market, mintAccount, config, supply] = result.value;
+  const result = await rpc.getMultipleAccountsInfoAndContext([addresses.market, mint, addresses.config, addresses.supplyVault,basketComponentsAddress(mint)], { commitment: 'confirmed', minContextSlot });
+  const [market, mintAccount, config, supply,extension] = result.value;
   if (!market || !mintAccount || !config || !supply) throw new Error('Basket is not active on the configured network');
-  const state = decodeBasketMarket(addresses.market, market);
+  const state = decodeBasketMarket(addresses.market, market, mintAccount.owner,extension);
   if (!state.mint.equals(mint)) throw new Error('Basket mint mismatch');
   const unsoldTokens = verifyBasketSupply(state, mintAccount, addresses.supplyVault, supply);
   if (!config.owner.equals(BASKET_PROGRAM_ID) || config.executable) throw new Error('Invalid basket configuration owner');
@@ -84,10 +108,10 @@ export async function readBasketMarket(rpc: Pick<Connection, 'getGenesisHash' | 
 export async function readBasketReserve(rpc: Pick<Connection, 'getGenesisHash' | 'getMultipleAccountsInfoAndContext'>, mint: PublicKey, minContextSlot = 0) {
   const discovered = await readBasketMarket(rpc, mint, minContextSlot);
   const addresses = basketAddresses(mint, mint);
-  const result = await rpc.getMultipleAccountsInfoAndContext([addresses.market, mint, addresses.config, addresses.supplyVault, ...discovered.components.map(component => component.vault)], { commitment: 'confirmed', minContextSlot: discovered.slot });
-  const [market, mintAccount, config, supply, ...vaults] = result.value;
+  const result = await rpc.getMultipleAccountsInfoAndContext([addresses.market, mint, addresses.config, addresses.supplyVault,basketComponentsAddress(mint), ...discovered.components.map(component => component.vault)], { commitment: 'confirmed', minContextSlot: discovered.slot });
+  const [market, mintAccount, config, supply,extension, ...vaults] = result.value;
   if (!market || !mintAccount || !config || !supply || vaults.some(vault => !vault)) throw new Error('Basket reserve is incomplete');
-  const state = decodeBasketMarket(addresses.market, market);
+  const state = decodeBasketMarket(addresses.market, market, mintAccount.owner,extension);
   const unsoldTokens = verifyBasketSupply(state, mintAccount, addresses.supplyVault, supply);
   if (!config.owner.equals(BASKET_PROGRAM_ID) || config.executable) throw new Error('Invalid basket configuration owner');
   const settings = coder.accounts.decode('Config', config.data);
@@ -97,7 +121,8 @@ export async function readBasketReserve(rpc: Pick<Connection, 'getGenesisHash' |
     const info = vaults[index]!;
     const tokenProgram = info.owner;
     if (![TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID].some(program => program.equals(tokenProgram))) throw new Error('Invalid constituent vault program');
-    if (!component.vault.equals(getAssociatedTokenAddressSync(component.mint, router, true, tokenProgram))) throw new Error('Noncanonical constituent vault');
+    const legacy=getAssociatedTokenAddressSync(component.mint,router,true,tokenProgram),reserve=basketReserveAddress(router,component.mint);
+    if (!component.vault.equals(legacy)&&!component.vault.equals(reserve)) throw new Error('Noncanonical constituent vault');
     const vault = unpackAccount(component.vault, info, tokenProgram);
     if (!vault.isInitialized || !vault.owner.equals(router) || !vault.mint.equals(component.mint) || vault.delegate || vault.closeAuthority || vault.isNative) throw new Error('Invalid constituent vault');
     return { ...component, balance: amount(vault.amount), tokenProgram };
@@ -116,6 +141,7 @@ function instruction(name: string, accounts: Record<string, PublicKey>, data: Re
   return new TransactionInstruction({ programId: BASKET_PROGRAM_ID, keys: [...keys, ...remaining], data: coder.instruction.encode(name, data) });
 }
 const integer = (v: bigint) => new BN(amount(v).toString());
+const componentRoutes=(mint:PublicKey,count:number,routes:AccountMeta[])=>count>4?[{pubkey:basketComponentsAddress(mint),isSigner:false,isWritable:true},...routes]:routes;
 export type BasketIdentityInput = { name: string; symbol: string; uri: string; jsonSha256: number[] };
 export function buildBasketActivation(input: { buyer: PublicKey; creator: PublicKey; mint: PublicKey; buyerTokens: PublicKey; weights: number[]; minComponents: bigint[]; grossSol: bigint; minTokens: bigint; creatorShareBps: number; identity: BasketIdentityInput; routes: AccountMeta[] }) {
   const { buyer, creator, mint, buyerTokens, identity, weights, minComponents, routes } = input;
@@ -127,10 +153,10 @@ export function buildBasketActivation(input: { buyer: PublicKey; creator: Public
   return instruction('activate_and_buy', { buyer, creator, mint, config: a.config, market: a.market, router: a.router, supply_vault: a.supplyVault, buyer_tokens: buyerTokens, token_program: TOKEN_PROGRAM_ID, system_program: SystemProgram.programId }, {
     weights, min_components: minComponents.map(integer), gross_sol: integer(input.grossSol), min_tokens: integer(input.minTokens), creator_share_bps: input.creatorShareBps,
     identity: { name: identity.name, symbol: identity.symbol, uri: identity.uri, json_sha256: identity.jsonSha256 },
-  }, routes);
+  }, componentRoutes(mint,weights.length,routes));
 }
 export function buildAtomicBasketActivation(input: { buyer: PublicKey; mint: PublicKey; weights: number[]; minComponents: bigint[]; grossSol: bigint; minTokens: bigint; creatorShareBps: number; identity: BasketIdentityInput; routes: AccountMeta[] }) {
-  const buyerTokens = getAssociatedTokenAddressSync(input.mint, input.buyer);
+  const buyerTokens = getAssociatedTokenAddressSync(input.mint, input.buyer, false, TOKEN_2022_PROGRAM_ID);
   if (!atomicBasketMint(input.buyer, Uint8Array.from(input.identity.jsonSha256)).equals(input.mint)) throw new Error('Atomic basket mint does not match its creator and metadata');
   const base = buildBasketActivation({ ...input, creator: input.buyer, buyerTokens });
   const data = coder.instruction.decode(base.data)?.data as Record<string, unknown> | undefined;
@@ -138,13 +164,13 @@ export function buildAtomicBasketActivation(input: { buyer: PublicKey; mint: Pub
   const a = basketAddresses(input.mint, input.buyer);
   return instruction('activate_atomic', {
     buyer: input.buyer, config: a.config, mint: input.mint, market: a.market, router: a.router,
-    supply_vault: a.supplyVault, buyer_tokens: buyerTokens, token_program: TOKEN_PROGRAM_ID,
+    supply_vault: a.supplyVault, buyer_tokens: buyerTokens, token_program: TOKEN_2022_PROGRAM_ID,
     associated_token_program: ASSOCIATED_TOKEN_PROGRAM_ID, system_program: SystemProgram.programId,
-  }, data, input.routes);
+  }, data, componentRoutes(input.mint,input.weights.length,input.routes));
 }
-function tradeAccounts(mint: PublicKey, trader: PublicKey, traderTokens: PublicKey) {
-  const a = basketAddresses(mint, trader);
-  return { trader, config: a.config, market: a.market, router: a.router, mint, supply_vault: a.supplyVault, trader_tokens: traderTokens, cashback: a.cashback, token_program: TOKEN_PROGRAM_ID, system_program: SystemProgram.programId };
+function tradeAccounts(state: BasketState, trader: PublicKey, traderTokens: PublicKey) {
+  const a = basketAddresses(state.mint, trader);
+  return { trader, config: a.config, market: a.market, router: a.router, mint:state.mint, supply_vault: a.supplyVault, trader_tokens: traderTokens, cashback: a.cashback, token_program: state.tokenProgram, system_program: SystemProgram.programId };
 }
 function checkRoutes(state: BasketState, routes: AccountMeta[]) {
   if (!routes.length || routes.some(account => account.isSigner)) throw new Error('Routes must contain accounts without external signers');
@@ -164,7 +190,7 @@ export function buildBasketBuy({ state, trader, traderTokens, routes, grossSol, 
   const quote = buyQuote(state.economics, composite);
   if (quote.tokens < minTokens) throw new Error('Basket quote is below minimum output');
   componentAmounts(state.economics, composite, 'buy');
-  return instruction('buy', tradeAccounts(state.mint, trader, traderTokens), { gross_sol: integer(grossSol), composite: integer(composite), min_tokens: integer(minTokens), max_sol_per_component: componentBudgets.map(integer) }, routes);
+  return instruction('buy', tradeAccounts(state, trader, traderTokens), { gross_sol: integer(grossSol), composite: integer(composite), min_tokens: integer(minTokens), max_sol_per_component: componentBudgets.map(integer) }, componentRoutes(state.mint,state.components.length,routes));
 }
 
 export function buildBasketSell({ state, trader, traderTokens, routes, tokens, minNetSol, componentMinimums }: TradeContext & { tokens: bigint; minNetSol: bigint; componentMinimums: bigint[] }) {
@@ -172,7 +198,7 @@ export function buildBasketSell({ state, trader, traderTokens, routes, tokens, m
   if (amount(minNetSol) === 0n || componentMinimums.length !== state.components.length || componentMinimums.some(v => amount(v) === 0n)) throw new Error('Invalid sell minimums');
   const quote = sellQuote(state.economics, tokens);
   if (componentAmounts(state.economics, quote.composite, 'sell').some(v => v === 0n)) throw new Error('Sale is below constituent token precision');
-  return instruction('sell', tradeAccounts(state.mint, trader, traderTokens), { tokens: integer(tokens), min_net_sol: integer(minNetSol), min_sol_per_component: componentMinimums.map(integer) }, routes);
+  return instruction('sell', tradeAccounts(state, trader, traderTokens), { tokens: integer(tokens), min_net_sol: integer(minNetSol), min_sol_per_component: componentMinimums.map(integer) }, componentRoutes(state.mint,state.components.length,routes));
 }
 
 export function buildBasketClaim(state: BasketState, owner: PublicKey, kind: 'creator' | 'platform' | 'cashback') {
@@ -184,7 +210,7 @@ export function buildBasketClaim(state: BasketState, owner: PublicKey, kind: 'cr
 export function buildFinalizeMetadata(state:BasketState,cranker:PublicKey){
  const a=basketAddresses(state.mint,cranker),metadataProgram=new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
  const metadata=PublicKey.findProgramAddressSync([Buffer.from('metadata'),metadataProgram.toBuffer(),state.mint.toBuffer()],metadataProgram)[0];
- return instruction('finalize_metadata',{cranker,market:a.market,router:a.router,mint:state.mint,metadata_payer:state.metadataPayer,metadata,metadata_program:metadataProgram,token_program:TOKEN_PROGRAM_ID,system_program:SystemProgram.programId},{});
+ return instruction('finalize_metadata',{cranker,market:a.market,router:a.router,mint:state.mint,metadata_payer:state.metadataPayer,metadata,metadata_program:metadataProgram,token_program:state.tokenProgram,instructions:SYSVAR_INSTRUCTIONS_PUBKEY,system_program:SystemProgram.programId},{});
 }
 
 export function buildPrepareQuote(mint: PublicKey, payer: PublicKey) {
@@ -194,9 +220,9 @@ export function buildPrepareQuote(mint: PublicKey, payer: PublicKey) {
 
 export async function readCashback(rpc:Pick<Connection,'getGenesisHash'|'getMultipleAccountsInfo'>,mint:PublicKey,owner:PublicKey){
  if(await rpc.getGenesisHash()!==NETWORK_GENESIS)throw new Error('RPC network does not match this BASKET build');
- const a=basketAddresses(mint,owner),[marketInfo,info]=await rpc.getMultipleAccountsInfo([a.market,a.cashback],{commitment:'confirmed'});
- if(!marketInfo)throw new Error('Basket market is unavailable');
- const market=decodeBasketMarket(a.market,marketInfo);
+ const a=basketAddresses(mint,owner),[marketInfo,mintInfo,extension,info]=await rpc.getMultipleAccountsInfo([a.market,mint,basketComponentsAddress(mint),a.cashback],{commitment:'confirmed'});
+ if(!marketInfo||!mintInfo)throw new Error('Basket market is unavailable');
+ const market=decodeBasketMarket(a.market,marketInfo,mintInfo.owner,extension);
  let claimable=market.initialCashbackOwner?.equals(owner)?market.initialCashback:0n;
  if(!info)return claimable;
  if(!info.owner.equals(BASKET_PROGRAM_ID)||info.executable)throw new Error('Invalid cashback account');

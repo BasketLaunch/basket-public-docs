@@ -8,11 +8,15 @@ export declare function basketAddresses(mint: PublicKey, trader: PublicKey): {
     supplyVault: PublicKey;
     cashback: PublicKey;
 };
+export declare function basketReserveAddress(router: PublicKey, mint: PublicKey): PublicKey;
+export declare const BASKET_COMPONENTS_ACCOUNT_SIZE = 337;
+export declare function basketComponentsAddress(mint: PublicKey): PublicKey;
 export declare function atomicBasketMint(creator: string | PublicKey, metadataHash: string | Uint8Array): PublicKey;
 /** Decode only the pinned program's canonical market, preserving integer precision. */
-export declare function decodeBasketMarket(address: PublicKey, account: AccountInfo<Buffer>): {
+export declare function decodeBasketMarket(address: PublicKey, account: AccountInfo<Buffer>, tokenProgram?: PublicKey, componentAccount?: AccountInfo<Buffer> | null): {
     address: PublicKey;
     mint: PublicKey;
+    tokenProgram: PublicKey;
     creator: PublicKey;
     treasury: PublicKey;
     components: {
@@ -50,6 +54,7 @@ export type BasketState = ReturnType<typeof decodeBasketMarket>;
 export declare function readBasketMarket(rpc: Pick<Connection, 'getGenesisHash' | 'getMultipleAccountsInfoAndContext'>, mint: PublicKey, minContextSlot?: number): Promise<{
     address: PublicKey;
     mint: PublicKey;
+    tokenProgram: PublicKey;
     creator: PublicKey;
     treasury: PublicKey;
     components: {
@@ -91,6 +96,7 @@ export declare function readBasketMarket(rpc: Pick<Connection, 'getGenesisHash' 
 export declare function readBasketReserve(rpc: Pick<Connection, 'getGenesisHash' | 'getMultipleAccountsInfoAndContext'>, mint: PublicKey, minContextSlot?: number): Promise<{
     address: PublicKey;
     mint: PublicKey;
+    tokenProgram: PublicKey;
     creator: PublicKey;
     treasury: PublicKey;
     economics: {

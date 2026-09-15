@@ -466,6 +466,8 @@ declare const idl: {
         }, {
             readonly name: "token_program";
         }, {
+            readonly name: "instructions";
+        }, {
             readonly name: "system_program";
         }];
         readonly args: readonly [];
@@ -722,6 +724,51 @@ declare const idl: {
             }];
         };
     }, {
+        readonly name: "MarketGraduated";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "mint";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "pool_tokens";
+                readonly type: "u64";
+            }, {
+                readonly name: "composite";
+                readonly type: "u64";
+            }, {
+                readonly name: "locked_tokens";
+                readonly type: "u64";
+            }];
+            readonly kind: "struct";
+        };
+    }, {
+        readonly name: "BuysPaused";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "paused";
+                readonly type: "bool";
+            }];
+            readonly kind: "struct";
+        };
+    }, {
+        readonly name: "FeeClaimed";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "market";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "owner";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "kind";
+                readonly type: "u8";
+            }, {
+                readonly name: "lamports";
+                readonly type: "u64";
+            }];
+            readonly kind: "struct";
+        };
+    }, {
         readonly name: "DirectTradeExecuted";
         readonly type: {
             readonly fields: readonly [{
@@ -748,6 +795,30 @@ declare const idl: {
             }, {
                 readonly name: "refund_sol";
                 readonly type: "u64";
+            }];
+            readonly kind: "struct";
+        };
+    }, {
+        readonly name: "MarketComponentsExtended";
+        readonly type: {
+            readonly fields: readonly [{
+                readonly name: "market";
+                readonly type: "pubkey";
+            }, {
+                readonly name: "mints";
+                readonly type: {
+                    readonly array: readonly ["pubkey", 4];
+                };
+            }, {
+                readonly name: "weights";
+                readonly type: {
+                    readonly array: readonly ["u16", 4];
+                };
+            }, {
+                readonly name: "recipe";
+                readonly type: {
+                    readonly array: readonly ["u64", 4];
+                };
             }];
             readonly kind: "struct";
         };
@@ -786,51 +857,6 @@ declare const idl: {
                 readonly type: "u64";
             }, {
                 readonly name: "cashback";
-                readonly type: "u64";
-            }];
-            readonly kind: "struct";
-        };
-    }, {
-        readonly name: "BuysPaused";
-        readonly type: {
-            readonly fields: readonly [{
-                readonly name: "paused";
-                readonly type: "bool";
-            }];
-            readonly kind: "struct";
-        };
-    }, {
-        readonly name: "FeeClaimed";
-        readonly type: {
-            readonly fields: readonly [{
-                readonly name: "market";
-                readonly type: "pubkey";
-            }, {
-                readonly name: "owner";
-                readonly type: "pubkey";
-            }, {
-                readonly name: "kind";
-                readonly type: "u8";
-            }, {
-                readonly name: "lamports";
-                readonly type: "u64";
-            }];
-            readonly kind: "struct";
-        };
-    }, {
-        readonly name: "MarketGraduated";
-        readonly type: {
-            readonly fields: readonly [{
-                readonly name: "mint";
-                readonly type: "pubkey";
-            }, {
-                readonly name: "pool_tokens";
-                readonly type: "u64";
-            }, {
-                readonly name: "composite";
-                readonly type: "u64";
-            }, {
-                readonly name: "locked_tokens";
                 readonly type: "u64";
             }];
             readonly kind: "struct";
@@ -878,11 +904,8 @@ declare const idl: {
         };
     }];
     readonly events: readonly [{
-        readonly discriminator: readonly [82, 149, 149, 104, 213, 77, 80, 58];
-        readonly name: "DirectTradeExecuted";
-    }, {
-        readonly discriminator: readonly [41, 110, 64, 129, 60, 79, 179, 80];
-        readonly name: "TradeExecuted";
+        readonly discriminator: readonly [66, 242, 94, 146, 88, 76, 225, 23];
+        readonly name: "MarketGraduated";
     }, {
         readonly discriminator: readonly [81, 41, 138, 93, 20, 219, 184, 33];
         readonly name: "BuysPaused";
@@ -890,8 +913,14 @@ declare const idl: {
         readonly discriminator: readonly [202, 108, 15, 80, 101, 18, 217, 158];
         readonly name: "FeeClaimed";
     }, {
-        readonly discriminator: readonly [66, 242, 94, 146, 88, 76, 225, 23];
-        readonly name: "MarketGraduated";
+        readonly discriminator: readonly [82, 149, 149, 104, 213, 77, 80, 58];
+        readonly name: "DirectTradeExecuted";
+    }, {
+        readonly discriminator: readonly [71, 139, 205, 77, 10, 72, 123, 79];
+        readonly name: "MarketComponentsExtended";
+    }, {
+        readonly discriminator: readonly [41, 110, 64, 129, 60, 79, 179, 80];
+        readonly name: "TradeExecuted";
     }, {
         readonly discriminator: readonly [196, 73, 78, 48, 187, 132, 107, 11];
         readonly name: "MarketActivated";
@@ -903,7 +932,7 @@ declare const idl: {
     }, {
         readonly code: 6001;
         readonly name: "Components";
-        readonly msg: "Choose 1–4 distinct components";
+        readonly msg: "Choose 1–8 distinct components";
     }, {
         readonly code: 6002;
         readonly name: "Weights";

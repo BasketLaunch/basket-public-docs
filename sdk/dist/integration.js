@@ -1,9 +1,13 @@
 import { PublicKey, TransactionMessage, VersionedTransaction, } from '@solana/web3.js';
-import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, } from '@solana/spl-token';
+import { createAssociatedTokenAccountIdempotentInstruction, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, } from '@solana/spl-token';
 import bs58 from 'bs58';
-import { BASKET_PROGRAM_ID, buildBasketBuy, buildBasketSell, decodeBasketMarket, readBasketMarket } from './basket-client.js';
-import { amount, BPS, buyQuote, ceilDiv, componentAmounts, completionComposite, fees, isGraduated, sellQuote } from './protocol.js';
+import { BorshCoder } from '@coral-xyz/anchor';
+import idl from './idl.js';
+import { BASKET_PROGRAM_ID, atomicBasketMint, basketAddresses, buildAtomicBasketActivation, buildBasketBuy, buildBasketSell, readBasketMarket } from './basket-client.js';
+import { amount, BPS, buyQuote, ceilDiv, componentAmounts, completionComposite, fees, INITIAL_COMPOSITE, INITIAL_REAL_TOKEN, INITIAL_TOKEN, isGraduated, MAX_LAUNCH_COMPONENTS, MIN_INITIAL_BUY, sellQuote, validateComponents } from './protocol.js';
 import { BASKET_PROGRAM_BYTES, BASKET_PROGRAM_DATA_ADDRESS, BASKET_PROGRAM_SHA256, BASKET_UPGRADE_AUTHORITY, NETWORK_GENESIS } from './network.js';
+import { prepareBasketV1Transaction } from './transaction-v1.js';
+const marketCoder = new BorshCoder(idl);
 function slippage(value) {
     if (!Number.isInteger(value) || value < 0 || value > 5_000)
         throw new Error('Slippage must be between 0 and 50%');
@@ -25,6 +29,36 @@ function checkedSnapshot(state, result, minimumSlot) {
         amount(leg.maxBuyTokens, 'maxBuyTokens');
     });
     return { state, legs: result.legs, slot: result.slot };
+}
+/** Build and simulate a complete creator-paid launch. Returned bytes need one creator signature and use no lookup table. */
+export async function prepareBasketLaunch(input) {
+    validateComponents(input.components);
+    if (input.components.length > MAX_LAUNCH_COMPONENTS)
+        throw new Error(`This SDK release supports at most ${MAX_LAUNCH_COMPONENTS} constituents in one atomic launch`);
+    if (input.grossSol < MIN_INITIAL_BUY)
+        throw new Error('The first buy must be at least 0.10 SOL');
+    const slippageValue = slippage(input.slippageBps ?? 100), mint = atomicBasketMint(input.buyer, Uint8Array.from(input.identity.jsonSha256));
+    const components = input.components.map(component => ({ mint: new PublicKey(component.mint), weightBps: component.weightBps }));
+    const route = await input.routeAdapter({ connection: input.connection, basketMint: mint, components });
+    if (!Number.isSafeInteger(route.slot) || route.slot < 0 || route.legs.length !== components.length)
+        throw new Error('Launch route adapter returned an invalid snapshot');
+    route.legs.forEach((leg, index) => { if (!leg.mint.equals(components[index].mint) || leg.accounts.some(account => account.isSigner))
+        throw new Error('Launch route does not match the ordered basket constituents'); });
+    const fee = fees(input.grossSol, input.creatorShareBps), budgets = components.map(component => fee.net * BigInt(component.weightBps) / BPS);
+    budgets[budgets.length - 1] += fee.net - budgets.reduce((sum, value) => sum + value, 0n);
+    const expectedComponents = route.legs.map((leg, index) => leg.activationTokens(budgets[index]));
+    if (expectedComponents.some((value, index) => value <= 0n || value > route.legs[index].maxBuyTokens))
+        throw new Error('A constituent lacks liquidity for this first buy');
+    const minComponents = expectedComponents.map(value => value * (BPS - slippageValue) / BPS);
+    const expectedTokens = buyQuote({ virtualToken: INITIAL_TOKEN, virtualComposite: INITIAL_COMPOSITE, realToken: INITIAL_REAL_TOKEN, complete: false }, fee.net).tokens, minTokens = expectedTokens * (BPS - slippageValue) / BPS;
+    if (minTokens === 0n || minComponents.some(value => value === 0n))
+        throw new Error('First buy is below token precision');
+    const activation = buildAtomicBasketActivation({ buyer: input.buyer, mint, weights: components.map(component => component.weightBps), minComponents, grossSol: input.grossSol, minTokens, creatorShareBps: input.creatorShareBps, identity: input.identity, routes: route.legs.flatMap(leg => leg.accounts) });
+    const instructions = [...(route.setupInstructions ?? []), activation];
+    if (instructions.some(instruction => instruction.keys.some(account => account.isSigner && !account.pubkey.equals(input.buyer))))
+        throw new Error('Atomic launch cannot require another signer');
+    const prepared = await prepareBasketV1Transaction(input.connection, input.buyer, instructions, route.slot);
+    return { mint, fee, budgets, expectedComponents, minComponents, expectedTokens, minTokens, instructions, slot: route.slot, prepared };
 }
 /** Apply the deployed curve, fixed recipe, venue costs, protocol fees and slippage using integer arithmetic. */
 export function quoteBasketBuy(snapshot, grossSol, slippageBps = 100) {
@@ -90,23 +124,23 @@ export async function prepareBasketBuy(input) {
         throw new Error('BASKET buys are currently paused');
     const snapshot = checkedSnapshot(state, await input.routeAdapter({ connection: input.connection, state, side: 'Buy', minContextSlot: state.slot }), state.slot);
     const quote = quoteBasketBuy(snapshot, input.grossSol, input.slippageBps);
-    const traderTokens = getAssociatedTokenAddressSync(input.mint, input.trader, false, TOKEN_PROGRAM_ID);
+    const traderTokens = getAssociatedTokenAddressSync(input.mint, input.trader, false, state.tokenProgram);
     const routes = snapshot.legs.flatMap(leg => leg.accounts);
-    const instructions = [
-        createAssociatedTokenAccountIdempotentInstruction(input.trader, traderTokens, input.trader, input.mint, TOKEN_PROGRAM_ID),
-        buildBasketBuy({ state, trader: input.trader, traderTokens, routes, grossSol: quote.grossSol, composite: quote.composite, minTokens: quote.minTokens, componentBudgets: quote.componentBudgets }),
-    ];
-    return { state, quote, instructions, lookupAddresses: lookupAddresses(instructions), slot: snapshot.slot };
+    const exists = await input.connection.getAccountInfo(traderTokens, { commitment: 'confirmed', minContextSlot: snapshot.slot });
+    const instructions = [...(exists ? [] : [createAssociatedTokenAccountIdempotentInstruction(input.trader, traderTokens, input.trader, input.mint, state.tokenProgram)]), buildBasketBuy({ state, trader: input.trader, traderTokens, routes, grossSol: quote.grossSol, composite: quote.composite, minTokens: quote.minTokens, componentBudgets: quote.componentBudgets })];
+    const prepared = state.tokenProgram.equals(TOKEN_2022_PROGRAM_ID) ? await prepareBasketV1Transaction(input.connection, input.trader, instructions, snapshot.slot) : null;
+    return { state, quote, instructions, prepared, lookupAddresses: lookupAddresses(instructions), slot: snapshot.slot };
 }
 /** Read canonical state, ask the platform's venue adapter for fresh routes and return one atomic sell instruction set. */
 export async function prepareBasketSell(input) {
     const state = await readBasketMarket(input.connection, input.mint, input.minContextSlot);
     const snapshot = checkedSnapshot(state, await input.routeAdapter({ connection: input.connection, state, side: 'Sell', minContextSlot: state.slot }), state.slot);
     const quote = quoteBasketSell(snapshot, input.tokens, input.slippageBps);
-    const traderTokens = getAssociatedTokenAddressSync(input.mint, input.trader, false, TOKEN_PROGRAM_ID);
+    const traderTokens = getAssociatedTokenAddressSync(input.mint, input.trader, false, state.tokenProgram);
     const routes = snapshot.legs.flatMap(leg => leg.accounts);
     const instructions = [buildBasketSell({ state, trader: input.trader, traderTokens, routes, tokens: quote.tokens, minNetSol: quote.minNetSol, componentMinimums: quote.componentMinimums })];
-    return { state, quote, instructions, lookupAddresses: lookupAddresses(instructions), slot: snapshot.slot };
+    const prepared = state.tokenProgram.equals(TOKEN_2022_PROGRAM_ID) ? await prepareBasketV1Transaction(input.connection, input.trader, instructions, snapshot.slot) : null;
+    return { state, quote, instructions, prepared, lookupAddresses: lookupAddresses(instructions), slot: snapshot.slot };
 }
 /** Compile prepared instructions into the single versioned transaction shown to the wallet. */
 export async function buildBasketTransaction(input) {
@@ -124,7 +158,14 @@ export async function discoverBasketMints(connection) {
         throw new Error('RPC is not Solana mainnet');
     const discriminator = bs58.encode(Uint8Array.from([59, 94, 108, 97, 53, 216, 244, 245]));
     const accounts = await connection.getProgramAccounts(BASKET_PROGRAM_ID, { commitment: 'confirmed', filters: [{ memcmp: { offset: 0, bytes: discriminator } }] });
-    return accounts.map(({ pubkey, account }) => ({ address: pubkey, mint: decodeBasketMarket(pubkey, account).mint }));
+    return accounts.map(({ pubkey, account }) => {
+        if (!account.owner.equals(BASKET_PROGRAM_ID) || account.executable)
+            throw new Error('Invalid basket market owner');
+        const state = marketCoder.accounts.decode('BasketMarket', account.data), mint = new PublicKey(state.mint);
+        if (!basketAddresses(mint, mint).market.equals(pubkey))
+            throw new Error('Noncanonical basket market');
+        return { address: pubkey, mint };
+    });
 }
 /** Pin the exact deployed bytecode before enabling an adapter in production. */
 export async function verifyDeployment(connection) {

@@ -1,5 +1,5 @@
 import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction, type AccountMeta, type Commitment, type TransactionInstruction } from '@solana/web3.js';
-import { type BasketState } from './basket-client.js';
+import { type BasketIdentityInput, type BasketState } from './basket-client.js';
 export type VenueLeg = {
     mint: PublicKey;
     accounts: AccountMeta[];
@@ -21,6 +21,34 @@ export type BasketRouteAdapter = (input: {
     legs: VenueLeg[];
     slot: number;
 }>;
+export type LaunchVenueLeg = VenueLeg & {
+    activationTokens(solLamports: bigint): bigint;
+};
+export type BasketLaunchRouteAdapter = (input: {
+    connection: Connection;
+    basketMint: PublicKey;
+    components: {
+        mint: PublicKey;
+        weightBps: number;
+    }[];
+}) => Promise<{
+    legs: LaunchVenueLeg[];
+    setupInstructions?: TransactionInstruction[];
+    slot: number;
+}>;
+export type PrepareLaunchInput = {
+    connection: Connection;
+    buyer: PublicKey;
+    identity: BasketIdentityInput;
+    components: {
+        mint: string;
+        weightBps: number;
+    }[];
+    grossSol: bigint;
+    creatorShareBps: number;
+    routeAdapter: BasketLaunchRouteAdapter;
+    slippageBps?: number;
+};
 export type PrepareBuyInput = {
     connection: Connection;
     mint: PublicKey;
@@ -39,6 +67,39 @@ export type PrepareSellInput = {
     slippageBps?: number;
     minContextSlot?: number;
 };
+/** Build and simulate a complete creator-paid launch. Returned bytes need one creator signature and use no lookup table. */
+export declare function prepareBasketLaunch(input: PrepareLaunchInput): Promise<{
+    mint: PublicKey;
+    fee: {
+        total: bigint;
+        platform: bigint;
+        creator: bigint;
+        cashback: bigint;
+        net: bigint;
+    };
+    budgets: bigint[];
+    expectedComponents: bigint[];
+    minComponents: bigint[];
+    expectedTokens: bigint;
+    minTokens: bigint;
+    instructions: TransactionInstruction[];
+    slot: number;
+    prepared: {
+        version: 1;
+        transaction: Readonly<import("@solana/transactions").TransactionWithBlockhashLifetime & Readonly<{
+            messageBytes: import("@solana/transactions").TransactionMessageBytes;
+            signatures: import("@solana/transactions").SignaturesMap;
+        }>>;
+        wireTransaction: Uint8Array<ArrayBuffer>;
+        messageBase58: string;
+        bytes: number;
+        accounts: number;
+        blockhash: string;
+        lastValidBlockHeight: number;
+        minContextSlot: number;
+        computeUnits: number;
+    };
+}>;
 /** Apply the deployed curve, fixed recipe, venue costs, protocol fees and slippage using integer arithmetic. */
 export declare function quoteBasketBuy(snapshot: BasketRouteSnapshot, grossSol: bigint, slippageBps?: number): {
     grossSol: bigint;
@@ -76,6 +137,7 @@ export declare function prepareBasketBuy(input: PrepareBuyInput): Promise<{
     state: {
         address: PublicKey;
         mint: PublicKey;
+        tokenProgram: PublicKey;
         creator: PublicKey;
         treasury: PublicKey;
         components: {
@@ -130,6 +192,21 @@ export declare function prepareBasketBuy(input: PrepareBuyInput): Promise<{
         estimatedRefund: bigint;
     };
     instructions: TransactionInstruction[];
+    prepared: {
+        version: 1;
+        transaction: Readonly<import("@solana/transactions").TransactionWithBlockhashLifetime & Readonly<{
+            messageBytes: import("@solana/transactions").TransactionMessageBytes;
+            signatures: import("@solana/transactions").SignaturesMap;
+        }>>;
+        wireTransaction: Uint8Array<ArrayBuffer>;
+        messageBase58: string;
+        bytes: number;
+        accounts: number;
+        blockhash: string;
+        lastValidBlockHeight: number;
+        minContextSlot: number;
+        computeUnits: number;
+    } | null;
     lookupAddresses: PublicKey[];
     slot: number;
 }>;
@@ -138,6 +215,7 @@ export declare function prepareBasketSell(input: PrepareSellInput): Promise<{
     state: {
         address: PublicKey;
         mint: PublicKey;
+        tokenProgram: PublicKey;
         creator: PublicKey;
         treasury: PublicKey;
         components: {
@@ -190,6 +268,21 @@ export declare function prepareBasketSell(input: PrepareSellInput): Promise<{
         };
     };
     instructions: TransactionInstruction[];
+    prepared: {
+        version: 1;
+        transaction: Readonly<import("@solana/transactions").TransactionWithBlockhashLifetime & Readonly<{
+            messageBytes: import("@solana/transactions").TransactionMessageBytes;
+            signatures: import("@solana/transactions").SignaturesMap;
+        }>>;
+        wireTransaction: Uint8Array<ArrayBuffer>;
+        messageBase58: string;
+        bytes: number;
+        accounts: number;
+        blockhash: string;
+        lastValidBlockHeight: number;
+        minContextSlot: number;
+        computeUnits: number;
+    } | null;
     lookupAddresses: PublicKey[];
     slot: number;
 }>;

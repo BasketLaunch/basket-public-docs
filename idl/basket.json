@@ -754,6 +754,9 @@
           "name": "token_program"
         },
         {
+          "name": "instructions"
+        },
+        {
           "name": "system_program"
         }
       ],
@@ -1173,6 +1176,66 @@
       }
     },
     {
+      "name": "MarketGraduated",
+      "type": {
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_tokens",
+            "type": "u64"
+          },
+          {
+            "name": "composite",
+            "type": "u64"
+          },
+          {
+            "name": "locked_tokens",
+            "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "BuysPaused",
+      "type": {
+        "fields": [
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "FeeClaimed",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "kind",
+            "type": "u8"
+          },
+          {
+            "name": "lamports",
+            "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
       "name": "DirectTradeExecuted",
       "type": {
         "fields": [
@@ -1207,6 +1270,45 @@
           {
             "name": "refund_sol",
             "type": "u64"
+          }
+        ],
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "MarketComponentsExtended",
+      "type": {
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "mints",
+            "type": {
+              "array": [
+                "pubkey",
+                4
+              ]
+            }
+          },
+          {
+            "name": "weights",
+            "type": {
+              "array": [
+                "u16",
+                4
+              ]
+            }
+          },
+          {
+            "name": "recipe",
+            "type": {
+              "array": [
+                "u64",
+                4
+              ]
+            }
           }
         ],
         "kind": "struct"
@@ -1258,66 +1360,6 @@
           },
           {
             "name": "cashback",
-            "type": "u64"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
-      "name": "BuysPaused",
-      "type": {
-        "fields": [
-          {
-            "name": "paused",
-            "type": "bool"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
-      "name": "FeeClaimed",
-      "type": {
-        "fields": [
-          {
-            "name": "market",
-            "type": "pubkey"
-          },
-          {
-            "name": "owner",
-            "type": "pubkey"
-          },
-          {
-            "name": "kind",
-            "type": "u8"
-          },
-          {
-            "name": "lamports",
-            "type": "u64"
-          }
-        ],
-        "kind": "struct"
-      }
-    },
-    {
-      "name": "MarketGraduated",
-      "type": {
-        "fields": [
-          {
-            "name": "mint",
-            "type": "pubkey"
-          },
-          {
-            "name": "pool_tokens",
-            "type": "u64"
-          },
-          {
-            "name": "composite",
-            "type": "u64"
-          },
-          {
-            "name": "locked_tokens",
             "type": "u64"
           }
         ],
@@ -1392,29 +1434,16 @@
   "events": [
     {
       "discriminator": [
-        82,
-        149,
-        149,
-        104,
-        213,
-        77,
-        80,
-        58
+        66,
+        242,
+        94,
+        146,
+        88,
+        76,
+        225,
+        23
       ],
-      "name": "DirectTradeExecuted"
-    },
-    {
-      "discriminator": [
-        41,
-        110,
-        64,
-        129,
-        60,
-        79,
-        179,
-        80
-      ],
-      "name": "TradeExecuted"
+      "name": "MarketGraduated"
     },
     {
       "discriminator": [
@@ -1444,16 +1473,42 @@
     },
     {
       "discriminator": [
-        66,
-        242,
-        94,
-        146,
-        88,
-        76,
-        225,
-        23
+        82,
+        149,
+        149,
+        104,
+        213,
+        77,
+        80,
+        58
       ],
-      "name": "MarketGraduated"
+      "name": "DirectTradeExecuted"
+    },
+    {
+      "discriminator": [
+        71,
+        139,
+        205,
+        77,
+        10,
+        72,
+        123,
+        79
+      ],
+      "name": "MarketComponentsExtended"
+    },
+    {
+      "discriminator": [
+        41,
+        110,
+        64,
+        129,
+        60,
+        79,
+        179,
+        80
+      ],
+      "name": "TradeExecuted"
     },
     {
       "discriminator": [
@@ -1478,7 +1533,7 @@
     {
       "code": 6001,
       "name": "Components",
-      "msg": "Choose 1\u20134 distinct components"
+      "msg": "Choose 1\u20138 distinct components"
     },
     {
       "code": 6002,
