@@ -1,6 +1,6 @@
 {
   "name": "@basketlaunch/sdk",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Official mainnet integration SDK for BASKET Solana basket tokens",
   "type": "module",
   "main": "./dist/index.js",
@@ -38,10 +38,10 @@
   "bugs": {
     "url": "https://github.com/BasketLaunch/basket-public-docs/issues"
   },
-  "license": "GPL-3.0",
+  "license": "MIT",
   "publishConfig": {
     "access": "public",
-    "provenance": false
+    "provenance": true
   },
   "engines": {
     "node": ">=20"
@@ -49,12 +49,16 @@
   "dependencies": {
     "@coral-xyz/anchor": "0.31.1",
     "@solana/kit": "^8.3.0",
-    "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.98.4",
     "bs58": "^6.0.0",
     "buffer": "6.0.3",
     "bn.js": "^5.2.2",
     "zod": "^4.5.4"
+  },
+  "overrides": {
+    "stream-json": "3.6.0",
+    "toml": "5.0.0",
+    "uuid": "14.0.2"
   },
   "devDependencies": {
     "@types/bn.js": "^5.2.0",

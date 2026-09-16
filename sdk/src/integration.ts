@@ -8,18 +8,14 @@ import {
   type Commitment,
   type TransactionInstruction,
 } from '@solana/web3.js';
-import {
-  createAssociatedTokenAccountIdempotentInstruction,
-  getAssociatedTokenAddressSync,
-  TOKEN_2022_PROGRAM_ID,
-} from '@solana/spl-token';
+import {createAssociatedTokenAccountIdempotentInstruction,getAssociatedTokenAddressSync,TOKEN_2022_PROGRAM_ID} from './token.js';
 import bs58 from 'bs58';
 import {BorshCoder,type Idl} from '@coral-xyz/anchor';
 import idl from './idl.js';
 import { BASKET_PROGRAM_ID, atomicBasketMint, basketAddresses, buildAtomicBasketActivation, buildBasketBuy, buildBasketSell, buildFinalizeMetadata, buildFinalizeMetadataForMint, decodeBasketMarket, readBasketMarket, type BasketIdentityInput, type BasketState } from './basket-client.js';
 import { amount, BPS, buyQuote, ceilDiv, componentAmounts, completionComposite, fees, INITIAL_COMPOSITE, INITIAL_REAL_TOKEN, INITIAL_TOKEN, isGraduated, MAX_LAUNCH_COMPONENTS, MIN_INITIAL_BUY, sellQuote, validateComponents } from './protocol.js';
 import { BASKET_PROGRAM_BYTES, BASKET_PROGRAM_DATA_ADDRESS, BASKET_PROGRAM_SHA256, BASKET_UPGRADE_AUTHORITY, NETWORK_GENESIS } from './network.js';
-import {prepareBasketV1Transaction} from './transaction-v1.js';
+import {prepareBasketV1Transaction,type BasketTransactionConfig} from './transaction-v1.js';
 const marketCoder=new BorshCoder(idl as unknown as Idl);
 
 export type VenueLeg = {
@@ -45,7 +41,7 @@ export type BasketRouteAdapter = (input: {
 
 export type LaunchVenueLeg=VenueLeg&{activationTokens(solLamports:bigint):bigint};
 export type BasketLaunchRouteAdapter=(input:{connection:Connection;basketMint:PublicKey;components:{mint:PublicKey;weightBps:number}[]})=>Promise<{legs:LaunchVenueLeg[];setupInstructions?:TransactionInstruction[];slot:number}>;
-export type PrepareLaunchInput={connection:Connection;buyer:PublicKey;identity:BasketIdentityInput;components:{mint:string;weightBps:number}[];grossSol:bigint;creatorShareBps:number;routeAdapter:BasketLaunchRouteAdapter;slippageBps?:number};
+export type PrepareLaunchInput={connection:Connection;buyer:PublicKey;identity:BasketIdentityInput;components:{mint:string;weightBps:number}[];grossSol:bigint;creatorShareBps:number;routeAdapter:BasketLaunchRouteAdapter;slippageBps?:number;transactionConfig?:BasketTransactionConfig};
 
 export type PrepareBuyInput = {
   connection: Connection;
@@ -55,6 +51,7 @@ export type PrepareBuyInput = {
   routeAdapter: BasketRouteAdapter;
   slippageBps?: number;
   minContextSlot?: number;
+  transactionConfig?: BasketTransactionConfig;
 };
 
 export type PrepareSellInput = {
@@ -65,6 +62,7 @@ export type PrepareSellInput = {
   routeAdapter: BasketRouteAdapter;
   slippageBps?: number;
   minContextSlot?: number;
+  transactionConfig?: BasketTransactionConfig;
 };
 
 function slippage(value: number) {
@@ -72,7 +70,7 @@ function slippage(value: number) {
   return BigInt(value);
 }
 
-function checkedSnapshot(state: BasketState, result: { legs: VenueLeg[]; slot: number }, minimumSlot: number): BasketRouteSnapshot {
+export function validateBasketRouteSnapshot(state: BasketState, result: { legs: VenueLeg[]; slot: number }, minimumSlot: number): BasketRouteSnapshot {
   if (!Number.isSafeInteger(result.slot) || result.slot < minimumSlot) throw new Error('Route adapter returned a stale slot');
   if (result.legs.length !== state.components.length) throw new Error('Route adapter did not return one leg per constituent');
   result.legs.forEach((leg, index) => {
@@ -104,7 +102,7 @@ export async function prepareBasketLaunch(input:PrepareLaunchInput){
   const activation=buildAtomicBasketActivation({buyer:input.buyer,mint,weights:components.map(component=>component.weightBps),minComponents,grossSol:input.grossSol,minTokens,creatorShareBps:input.creatorShareBps,identity:input.identity,routes:route.legs.flatMap(leg=>leg.accounts)});
   const instructions=[...(route.setupInstructions??[]),activation,buildFinalizeMetadataForMint(mint,input.buyer)];
   if(instructions.some(instruction=>instruction.keys.some(account=>account.isSigner&&!account.pubkey.equals(input.buyer))))throw new Error('Atomic launch cannot require another signer');
-  const prepared=await prepareBasketV1Transaction(input.connection,input.buyer,instructions,route.slot);
+  const prepared=await prepareBasketV1Transaction(input.connection,input.buyer,instructions,route.slot,input.transactionConfig);
   return{mint,fee,budgets,expectedComponents,minComponents,expectedTokens,minTokens,instructions,slot:route.slot,prepared};
 }
 
@@ -162,25 +160,25 @@ function lookupAddresses(instructions: TransactionInstruction[]) {
 export async function prepareBasketBuy(input: PrepareBuyInput) {
   const state = await readBasketMarket(input.connection, input.mint, input.minContextSlot);
   if (state.buysPaused) throw new Error('BASKET buys are currently paused');
-  const snapshot = checkedSnapshot(state, await input.routeAdapter({ connection: input.connection, state, side: 'Buy', minContextSlot: state.slot }), state.slot);
+  const snapshot = validateBasketRouteSnapshot(state, await input.routeAdapter({ connection: input.connection, state, side: 'Buy', minContextSlot: state.slot }), state.slot);
   const quote = quoteBasketBuy(snapshot, input.grossSol, input.slippageBps);
   const traderTokens = getAssociatedTokenAddressSync(input.mint, input.trader, false, state.tokenProgram);
   const routes = snapshot.legs.flatMap(leg => leg.accounts);
   const exists=await input.connection.getAccountInfo(traderTokens,{commitment:'confirmed',minContextSlot:snapshot.slot});
   const instructions = [...(exists?[]:[createAssociatedTokenAccountIdempotentInstruction(input.trader, traderTokens, input.trader, input.mint, state.tokenProgram)]),...(state.metadataPending?[buildFinalizeMetadata(state,input.trader)]:[]),buildBasketBuy({ state, trader: input.trader, traderTokens, routes, grossSol: quote.grossSol, composite: quote.composite, minTokens: quote.minTokens, componentBudgets: quote.componentBudgets })];
-  const prepared=state.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)?await prepareBasketV1Transaction(input.connection,input.trader,instructions,snapshot.slot):null;
+  const prepared=state.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)?await prepareBasketV1Transaction(input.connection,input.trader,instructions,snapshot.slot,input.transactionConfig):null;
   return { state, quote, instructions, prepared, lookupAddresses: lookupAddresses(instructions), slot: snapshot.slot };
 }
 
 /** Read canonical state, ask the platform's venue adapter for fresh routes and return one atomic sell instruction set. */
 export async function prepareBasketSell(input: PrepareSellInput) {
   const state = await readBasketMarket(input.connection, input.mint, input.minContextSlot);
-  const snapshot = checkedSnapshot(state, await input.routeAdapter({ connection: input.connection, state, side: 'Sell', minContextSlot: state.slot }), state.slot);
+  const snapshot = validateBasketRouteSnapshot(state, await input.routeAdapter({ connection: input.connection, state, side: 'Sell', minContextSlot: state.slot }), state.slot);
   const quote = quoteBasketSell(snapshot, input.tokens, input.slippageBps);
   const traderTokens = getAssociatedTokenAddressSync(input.mint, input.trader, false, state.tokenProgram);
   const routes = snapshot.legs.flatMap(leg => leg.accounts);
   const instructions = [...(state.metadataPending?[buildFinalizeMetadata(state,input.trader)]:[]),buildBasketSell({ state, trader: input.trader, traderTokens, routes, tokens: quote.tokens, minNetSol: quote.minNetSol, componentMinimums: quote.componentMinimums })];
-  const prepared=state.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)?await prepareBasketV1Transaction(input.connection,input.trader,instructions,snapshot.slot):null;
+  const prepared=state.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)?await prepareBasketV1Transaction(input.connection,input.trader,instructions,snapshot.slot,input.transactionConfig):null;
   return { state, quote, instructions, prepared, lookupAddresses: lookupAddresses(instructions), slot: snapshot.slot };
 }
 

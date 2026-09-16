@@ -6,7 +6,7 @@
     "spec": "0.1.0"
   },
   "docs": [
-    "Development contract. Website execution stays disabled until the complete release gates pass."
+    "Active BASKET mainnet integration interface. Check the on-chain pause flag and pinned release before use."
   ],
   "instructions": [
     {

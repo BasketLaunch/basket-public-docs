@@ -5,7 +5,7 @@ declare const idl: {
         readonly version: "0.1.0";
         readonly spec: "0.1.0";
     };
-    readonly docs: readonly ["Development contract. Website execution stays disabled until the complete release gates pass."];
+    readonly docs: readonly ["Active BASKET mainnet integration interface. Check the on-chain pause flag and pinned release before use."];
     readonly instructions: readonly [{
         readonly name: "initialize_config";
         readonly discriminator: readonly [208, 127, 21, 1, 194, 190, 196, 70];
