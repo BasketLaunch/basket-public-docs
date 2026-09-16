@@ -1,5 +1,6 @@
 import { AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction, type AccountMeta, type Commitment, type TransactionInstruction } from '@solana/web3.js';
 import { type BasketIdentityInput, type BasketState } from './basket-client.js';
+import { type BasketTransactionConfig } from './transaction-v1.js';
 export type VenueLeg = {
     mint: PublicKey;
     accounts: AccountMeta[];
@@ -48,6 +49,7 @@ export type PrepareLaunchInput = {
     creatorShareBps: number;
     routeAdapter: BasketLaunchRouteAdapter;
     slippageBps?: number;
+    transactionConfig?: BasketTransactionConfig;
 };
 export type PrepareBuyInput = {
     connection: Connection;
@@ -57,6 +59,7 @@ export type PrepareBuyInput = {
     routeAdapter: BasketRouteAdapter;
     slippageBps?: number;
     minContextSlot?: number;
+    transactionConfig?: BasketTransactionConfig;
 };
 export type PrepareSellInput = {
     connection: Connection;
@@ -66,7 +69,12 @@ export type PrepareSellInput = {
     routeAdapter: BasketRouteAdapter;
     slippageBps?: number;
     minContextSlot?: number;
+    transactionConfig?: BasketTransactionConfig;
 };
+export declare function validateBasketRouteSnapshot(state: BasketState, result: {
+    legs: VenueLeg[];
+    slot: number;
+}, minimumSlot: number): BasketRouteSnapshot;
 /** Build and simulate a complete creator-paid launch. Returned bytes need one creator signature and use no lookup table. */
 export declare function prepareBasketLaunch(input: PrepareLaunchInput): Promise<{
     mint: PublicKey;
@@ -94,6 +102,8 @@ export declare function prepareBasketLaunch(input: PrepareLaunchInput): Promise<
         messageBase58: string;
         bytes: number;
         accounts: number;
+        computeUnitLimit: number;
+        priorityFeeLamports: bigint;
         blockhash: string;
         lastValidBlockHeight: number;
         minContextSlot: number;
@@ -202,6 +212,8 @@ export declare function prepareBasketBuy(input: PrepareBuyInput): Promise<{
         messageBase58: string;
         bytes: number;
         accounts: number;
+        computeUnitLimit: number;
+        priorityFeeLamports: bigint;
         blockhash: string;
         lastValidBlockHeight: number;
         minContextSlot: number;
@@ -278,6 +290,8 @@ export declare function prepareBasketSell(input: PrepareSellInput): Promise<{
         messageBase58: string;
         bytes: number;
         accounts: number;
+        computeUnitLimit: number;
+        priorityFeeLamports: bigint;
         blockhash: string;
         lastValidBlockHeight: number;
         minContextSlot: number;

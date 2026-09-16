@@ -3,7 +3,7 @@ import { Buffer } from 'buffer';
 import { BorshCoder, type Idl } from '@coral-xyz/anchor';
 import BN from 'bn.js';
 import { PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram, TransactionInstruction, type AccountInfo, type AccountMeta, type Connection } from '@solana/web3.js';
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID, NATIVE_MINT, getAssociatedTokenAddressSync, unpackAccount, unpackMint } from '@solana/spl-token';
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID, NATIVE_MINT, getAssociatedTokenAddressSync, unpackAccount, unpackMint } from './token.js';
 import idl from './idl.js';
 import { amount, buyQuote, componentAmounts, fees, INITIAL_REAL_TOKEN, INITIAL_TOKEN, INITIAL_COMPOSITE, isGraduated, MAX_COMPONENTS, sellQuote, SUPPLY, validateComponents } from './protocol.js';
 import { NETWORK_GENESIS } from './network.js';

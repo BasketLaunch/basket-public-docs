@@ -8,12 +8,16 @@
   "candidateArtifactSha256": "51c9f738d98d4c79bc6d6529f2c9a8f4990052dfe53256557e773f5d6995d98b",
   "programBytes": 844304,
   "candidateArtifactBytes": 773712,
-  "idlSha256": "a06137c7dc57a897b754e32e7a3a06d5a3f17983b220bc00900cb72665880e9b",
+  "idlSha256": "e9ec01f02d7df6907d82df9f0fb084277c95ff34853b64ff7429e8ff151592c5",
   "implementationSourcePublished": false,
   "referenceSourcePublished": true,
   "sdk": {
     "package": "@basketlaunch/sdk",
-    "version": "0.2.4",
+    "version": "0.2.5",
+    "protocolRelease": "v0.3.2-compact-metadata",
+    "license": "MIT",
+    "tarballSha256": "8494db44cf03b872b81f81c3ae553326e0c4643a918b08fa450d7c567d6a1679",
+    "provenance": true,
     "mainnetOnly": true
   },
   "independentAuditPublished": false,
